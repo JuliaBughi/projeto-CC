@@ -1,9 +1,14 @@
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
-public class Device {
+//perceber melhor se as classes maiores como bandwidth também têm de ter serializableName
+
+class Device {
+    @SerializedName("device_id")
     String device_id;
     DeviceMetrics device_metrics;
-    private LinkMetrics link_metrics;
+    LinkMetrics link_metrics;
 
     @Override
     public String toString() {
@@ -16,9 +21,12 @@ public class Device {
 }
 
 class DeviceMetrics {
+    @SerializedName("cpu_usage")
     boolean cpu_usage;
-    private boolean ram_usage;
-    private List<String> interface_stats;
+    @SerializedName("ram_usage")
+    boolean ram_usage;
+    @SerializedName("interface_stats")
+    List<String> interface_stats;
 
     @Override
     public String toString() {
@@ -31,11 +39,12 @@ class DeviceMetrics {
 }
 
 class LinkMetrics {
-    private Bandwidth bandwidth;
-    private Jitter jitter;
-    private PacketLoss packet_loss;
-    private Latency latency;
-    private AlertFlowConditions alertflow_conditions;
+    Bandwidth bandwidth;
+    Jitter jitter;
+    PacketLoss packet_loss;
+    Latency latency;
+    @SerializedName("alertflow_conditions")
+    AlertFlowConditions alertflow_conditions;
 
     @Override
     public String toString() {
@@ -50,12 +59,18 @@ class LinkMetrics {
 }
 
 class Bandwidth {
-    private String tool;
-    private String role;
-    private String server_address;
-    private int duration;
-    private String transport_type;
-    private int frequency;
+    @SerializedName("tool")
+    String tool;
+    @SerializedName("role")
+    String role;
+    @SerializedName("server_address")
+    String server_address;
+    @SerializedName("duration")
+    int duration;
+    @SerializedName("transport_type")
+    String transport_type;
+    @SerializedName("frequency")
+    int frequency;
 
     @Override
     public String toString() {
@@ -70,13 +85,7 @@ class Bandwidth {
     }
 }
 
-class Jitter {
-    private String tool;
-    private String role;
-    private String server_address;
-    private int duration;
-    private String transport_type;
-    private int frequency;
+class Jitter extends Bandwidth{
 
     @Override
     public String toString() {
@@ -91,13 +100,7 @@ class Jitter {
     }
 }
 
-class PacketLoss {
-    private String tool;
-    private String role;
-    private String server_address;
-    private int duration;
-    private String transport_type;
-    private int frequency;
+class PacketLoss extends Bandwidth{
 
     @Override
     public String toString() {
@@ -114,9 +117,13 @@ class PacketLoss {
 }
 
 class Latency {
+    @SerializedName("tool")
     private String tool;
+    @SerializedName("destination")
     private String destination;
+    @SerializedName("packet_count")
     private int count;
+    @SerializedName("frequency")
     private int frequency;
 
     @Override
@@ -131,10 +138,15 @@ class Latency {
 }
 
 class AlertFlowConditions {
+    @SerializedName("cpu_usage")
     private int cpu_usage;
+    @SerializedName("ram_usage")
     private int ram_usage;
+    @SerializedName("interface_stats")
     private int interface_stats;
+    @SerializedName("packet_loss")
     private int packet_loss;
+    @SerializedName("jitter")
     private int jitter;
 
     @Override
@@ -147,4 +159,8 @@ class AlertFlowConditions {
                 ", jitter=" + jitter +
                 '}';
     }
+}
+
+class ListTasks{
+    List<Task> tasks;
 }

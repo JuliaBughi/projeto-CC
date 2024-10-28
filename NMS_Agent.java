@@ -3,7 +3,7 @@ import java.net.*;
 public class NMS_Agent {
 
     // Endereço e portas do servidor
-    private static final String SERVER_ADDRESS = "localhost";
+    private static final String SERVER_ADDRESS = "localhost"; // perceber melhor como isto funciona
     private static final int UDP_PORT = 9876;
     private static final int TCP_PORT = 6789;
 
@@ -14,37 +14,43 @@ public class NMS_Agent {
     }
 
     // Método para enviar mensagem via UDP
-    private static void sendUDPMessage(String message) {
-        try (DatagramSocket udpSocket = new DatagramSocket()) {
-            InetAddress ipAddress = InetAddress.getByName(SERVER_ADDRESS);
-            byte[] sendData = message.getBytes();
+    // passar como argumento o pacote que se quer enviar para o server
+    private static void sendUDPMessage(String message) throws IOException{
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipAddress, UDP_PORT);
-            udpSocket.send(sendPacket);
+        DatagramSocket udpSocket = new DatagramSocket();
+        InetAddress ipAddress = InetAddress.getByName(SERVER_ADDRESS);
+        // aqui têm que se fazer o getBytes do pacote
+        byte[] sendData = message.getBytes();
 
-            // Receber resposta do servidor
-            byte[] receiveData = new byte[1024];
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            udpSocket.receive(receivePacket);
-            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("UDP Agent received: " + response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipAddress, UDP_PORT);
+        udpSocket.send(sendPacket);
+
+        // Receber resposta do servidor
+        byte[] receiveData = new byte[1024]; // ver melhor depois este 1024
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        udpSocket.receive(receivePacket);
+        // fazer o getdata para dar um pacote
+        String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+        // pode-se deixar esta mensagem para ter feedback
+        System.out.println("UDP Agent received: " + response);
+
     }
 
     // Método para enviar mensagem via TCP
-    private static void sendTCPMessage(String message) {
-        try (Socket tcpSocket = new Socket(SERVER_ADDRESS, TCP_PORT)) {
-            OutputStream outToServer = tcpSocket.getOutputStream();
-            outToServer.write((message + "\n").getBytes());
+    // mais uma vez tem que se dar como argumento o pacote
+    private static void sendTCPMessage(String message) throws IOException {
 
-            // Receber resposta do servidor
-            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
-            String response = inFromServer.readLine();
-            System.out.println("TCP Agent received: " + response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Socket tcpSocket = new Socket(SERVER_ADDRESS, TCP_PORT);
+        OutputStream outToServer = tcpSocket.getOutputStream();
+        // esta linha de baixo tem que ser adaptada ao pacote
+        outToServer.write((message + "\n").getBytes());
+
+        // Receber resposta do servidor
+        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+        // passar a resposta para pacote
+        String response = inFromServer.readLine();
+        // pode-se deixar esta mensagem para ter feedback
+        System.out.println("TCP Agent received: " + response);
+
     }
 }
