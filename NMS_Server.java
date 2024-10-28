@@ -1,5 +1,10 @@
 import java.io.*;
 import java.net.*;
+import com.google.gson.Gson;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+
 public class NMS_Server {
 
     // Porta para UDP (NetTask)
@@ -14,7 +19,7 @@ public class NMS_Server {
         new Thread(NMS_Server::startTCPServer).start();
     }
 
-    // Método para iniciar o servidor UDP (NetTask)
+    // Metodo para iniciar o servidor UDP (NetTask)
     private static void startUDPServer() {
         try{
             DatagramSocket udpServer = new DatagramSocket(UDP_PORT);
@@ -42,7 +47,7 @@ public class NMS_Server {
         }
     }
 
-    // Método para iniciar o servidor TCP (AlertFlow)
+    // Metodo para iniciar o servidor TCP (AlertFlow)
     private static void startTCPServer() {
         try {
             ServerSocket tcpServer = new ServerSocket(TCP_PORT);  // o giga meteu que podia ser StreamSocket (ver as diferencas)
@@ -75,4 +80,28 @@ public class NMS_Server {
     // o socket do servidor so serve para receber
     // tem de se criar sockets para mandar as merdas e depois fechar
 
+    public static class Main {
+        public static void main(String[] args) {
+            Gson gson = new Gson();
+            try (FileReader reader = new FileReader("caminho/para/o/arquivo.json")) {
+                Root root = gson.fromJson(reader, Root.class);
+                root.tasks.forEach(task -> {
+                    System.out.println("Task ID: " + task.task_id);
+                    System.out.println("Frequency: " + task.frequency);
+                    task.devices.forEach(device -> {
+                        System.out.println("Device ID: " + device.device_id);
+                        System.out.println("CPU Usage Monitoring: " + device.device_metrics.cpu_usage);
+                        // Continue extraindo outras propriedades conforme necessário
+                    });
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+}
+
+class Root{
+    List<Task> tasks;
 }
