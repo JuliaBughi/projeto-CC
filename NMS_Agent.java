@@ -3,9 +3,9 @@ import java.net.*;
 public class NMS_Agent {
 
     // Endereço e portas do servidor
-    private static final String SERVER_ADDRESS = "localhost"; // perceber melhor como isto funciona
+    private static final String SERVER_ADDRESS = "localhost"; // por ser localhost não tem de se meter o IP?
     private static final int UDP_PORT = 9876;
-    private static final int TCP_PORT = 6789;
+    private static final int TCP_PORT = 6666;
 
     public static void main(String[] args) throws Exception {
         // Iniciar comunicação UDP e TCP
@@ -40,13 +40,13 @@ public class NMS_Agent {
     // mais uma vez tem que se dar como argumento o pacote
     private static void sendTCPMessage(String message) throws IOException {
 
-        Socket tcpSocket = new Socket(SERVER_ADDRESS, TCP_PORT);
-        OutputStream outToServer = tcpSocket.getOutputStream();
+        Socket clientSocket = new Socket(SERVER_ADDRESS, TCP_PORT);
+        OutputStream outToServer = clientSocket.getOutputStream();
         // esta linha de baixo tem que ser adaptada ao pacote
         outToServer.write((message + "\n").getBytes());
 
         // Receber resposta do servidor
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         // passar a resposta para pacote
         String response = inFromServer.readLine();
         // pode-se deixar esta mensagem para ter feedback

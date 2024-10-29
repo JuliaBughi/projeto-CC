@@ -8,7 +8,7 @@ public class NMS_Server {
     private static final int UDP_PORT = 9876;
 
     // Porta para TCP (AlertFlow)
-    private static final int TCP_PORT = 6789;
+    private static final int TCP_PORT = 6666;
 
     public static void main(String[] args) {
         // Iniciar threads para UDP e TCP
@@ -33,6 +33,9 @@ public class NMS_Server {
                 String message = new String(receivePacket.getData(), 0, receivePacket.getLength());
                 System.out.println("UDP Server received: " + message);
 
+                //InetAddress address = packet.getAddress();
+                //int port = packet.getPort();
+
                 // Responder com ACK
                 String ack = "UDP ACK from server";
                 byte[] sendData = ack.getBytes();
@@ -43,6 +46,8 @@ public class NMS_Server {
             System.out.println("Erro: " + e.getMessage());
         }
     }
+
+    //convém depois arranjar maneira de terminar os ciclos while e de fechar as ligações que forem precisas
 
     // Método para iniciar o servidor TCP (AlertFlow)
     private static void startTCPServer() {
@@ -69,6 +74,9 @@ public class NMS_Server {
             System.out.println("Erro: " + e.getMessage());
         }
     }
+
+    // perceber se devemos ter este código dentro do while ou se devemos passa-lo para outra função
+
     //O que vem no pacote
     //porta de origem/destino, ip origem/destino, payload(é mandado para o parser)
     // Para o ack:
@@ -80,25 +88,19 @@ public class NMS_Server {
 
     private static ListTasks Jsonparser(String file_path) {
         Gson gson = new Gson();
-        try (FileReader reader = new FileReader(file_path)) {
+        try {
+            FileReader reader = new FileReader(file_path);
             ListTasks listTasks = gson.fromJson(reader, ListTasks.class);
-            listTasks.tasks.forEach(task -> {
-                System.out.println("Task ID: " + task.task_id);
-                System.out.println("Frequency: " + task.frequency);
-                task.devices.forEach(device -> {
-                    System.out.println("Device ID: " + device.device_id);
-                    System.out.println("CPU Usage Monitoring: " + device.device_metrics.cpu_usage);
-                    // Continue extraindo outras propriedades conforme necessário
-                });
-            });
-
             return listTasks;
         } catch (IOException e) {
-            System.out.println("Erro: " + e.getMessage());
+            System.out.println("Erro ao ler o ficheiro: " + e.getMessage());
             return null;
         }
     }
 
+    //Perguntas
+
+    // No alertflow(tcp) o cliente manda o alerta, o server responde com ack e depois a ligação é fechada?
 
 }
 
