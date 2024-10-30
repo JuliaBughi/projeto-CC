@@ -18,14 +18,17 @@ public class NMS_Server {
 
     // Método para iniciar o servidor UDP (NetTask)
     private static void startUDPServer() {
-        try{
+        try {
             DatagramSocket udpServer = new DatagramSocket(UDP_PORT);
-            byte[] receiveData = new byte[1024];
+            System.out.println("UDP Server running and waiting for clients");
 
             while (true) {
+                byte[] receiveData = new byte[1024];
                 // ler o pacote mandado do cliente
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 udpServer.receive(receivePacket);
+
+                new Thread(new ClientHandler(receivePacket)).start();
 
                 // para cada pacote recebido arrancar uma thread para lidar com o cliente
                 // clientHandler(buffer).run() seria algo deste genero
@@ -43,9 +46,12 @@ public class NMS_Server {
                 udpServer.send(sendPacket);
             }
         } catch (Exception e) {
-            System.out.println("Erro: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            //cenas que se estavam a escrever que está agora no UDPServer
         }
     }
+
 
     //convém depois arranjar maneira de terminar os ciclos while e de fechar as ligações que forem precisas
 

@@ -8,6 +8,7 @@ public class Task {
     int frequency;
     @SerializedName("devices")
     List<Device> devices;
+    @Seriali
 
     @Override
     public String toString() {

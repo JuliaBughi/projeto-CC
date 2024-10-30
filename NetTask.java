@@ -2,8 +2,10 @@ import java.net.*;
 
 public class NetTask {
     private DatagramSocket socket;
-    private InetAddress address;
-    private int port;
+    private InetAddress srvAddress;
+    private int serverPort;
+    private String clientId;
+    private Task task;
     private int windowSize = 5; // Pode ajustar conforme necessário
 
     public NetTask(InetAddress address, int port) throws SocketException {
