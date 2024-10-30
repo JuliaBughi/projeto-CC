@@ -35,7 +35,6 @@ public class UDPServer {
 
                 socket.receive(receivePacket);
 
-                //inicia uma nova thread para lidar com a mensagem recebida
                 new Thread(new ClientHandler(receivePacket, this)).start();
             }
         } catch(Exception e){
@@ -96,3 +95,9 @@ class ClientHandler implements Runnable {
         }
     }
 }
+
+// ao iniciar o cliente também temos de por o seu ip, o ip do server, socket do server e o seu nome ("r1")
+// o nome do cliente tem de ser mandado para o server para ele depois saber para onde manda as tarefas
+// fazer um hashmap com nome-ip para o server saber mandar as tarefas
+
+// ao iniciar o server temos de lhe passar o ip
