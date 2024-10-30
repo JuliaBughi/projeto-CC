@@ -1,3 +1,5 @@
+package Task;
+
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        return "Task.Task{" +
                 "task_id='" + task_id + '\'' +
                 ", frequency=" + frequency +
                 ", devices=" + devices +
@@ -25,7 +27,7 @@ class ListTasks{
 
     @Override
     public String toString() {
-        return "ListTasks{" +
+        return "Task.ListTasks{" +
                 "tasks=" + tasks +
                 '}';
     }
@@ -42,7 +44,7 @@ class Device {
 
     @Override
     public String toString() {
-        return "Device{" +
+        return "Task.Device{" +
                 "device_id='" + device_id + '\'' +
                 ", device_metrics=" + device_metrics +
                 ", link_metrics=" + link_metrics +
@@ -60,7 +62,7 @@ class DeviceMetrics {
 
     @Override
     public String toString() {
-        return "DeviceMetrics{" +
+        return "Task.DeviceMetrics{" +
                 "cpu_usage=" + cpu_usage +
                 ", ram_usage=" + ram_usage +
                 ", interface_stats=" + interface_stats +
@@ -82,7 +84,7 @@ class LinkMetrics {
 
     @Override
     public String toString() {
-        return "LinkMetrics{" +
+        return "Task.LinkMetrics{" +
                 "bandwidth=" + bandwidth +
                 ", jitter=" + jitter +
                 ", packet_loss=" + packet_loss +
@@ -108,7 +110,7 @@ class Bandwidth {
 
     @Override
     public String toString() {
-        return "Bandwidth{" +
+        return "Task.Bandwidth{" +
                 "tool='" + tool + '\'' +
                 ", role='" + role + '\'' +
                 ", server_address='" + server_address + '\'' +
@@ -123,7 +125,7 @@ class Jitter extends Bandwidth{
 
     @Override
     public String toString() {
-        return "Jitter{" +
+        return "Task.Jitter{" +
                 "tool='" + tool + '\'' +
                 ", role='" + role + '\'' +
                 ", server_address='" + server_address + '\'' +
@@ -138,7 +140,7 @@ class PacketLoss extends Bandwidth{
 
     @Override
     public String toString() {
-        return "PacketLoss{" +
+        return "Task.PacketLoss{" +
                 "tool='" + tool + '\'' +
                 ", role='" + role + '\'' +
                 ", server_address='" + server_address + '\'' +
@@ -162,7 +164,7 @@ class Latency {
 
     @Override
     public String toString() {
-        return "Latency{" +
+        return "Task.Latency{" +
                 "tool='" + tool + '\'' +
                 ", destination='" + destination + '\'' +
                 ", count='" + count + '\'' +
@@ -185,7 +187,7 @@ class AlertFlowConditions {
 
     @Override
     public String toString() {
-        return "AlertFlowConditions{" +
+        return "Task.AlertFlowConditions{" +
                 "cpu_usage=" + cpu_usage +
                 ", ram_usage=" + ram_usage +
                 ", interface_stats=" + interface_stats +

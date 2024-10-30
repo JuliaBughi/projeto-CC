@@ -1,17 +1,29 @@
 import java.io.*;
 import java.net.*;
 import com.google.gson.Gson;
+import java.util.*;
+import Packet.*;
 
 //USADO APENAS COMO BASE, NÃO FUNCIONA NO CORE
 public class UDPServer {
-
-    public static void main(String[] args) {
+    /*
+    public static void main(String[] args) {   ---- acho que isto não é preciso
         // Iniciar threads para UDP e TCP
         new Thread(UDPServer::startUDPServer).start();
+    }*/
+
+    private Map<InetAddress,String> mapDevices;  // par ip->device_id
+
+    public void addDevice(InetAddress ip, String device_id){
+        this.mapDevices.put(ip, device_id);
+    }
+
+    public String getDeviceByIp(InetAddress ip){
+        return this.mapDevices.get(ip);
     }
 
 
-    private static void startUDPServer() {
+    private void main(String[] args) {
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket(9876);
@@ -24,7 +36,7 @@ public class UDPServer {
                 socket.receive(receivePacket);
 
                 //inicia uma nova thread para lidar com a mensagem recebida
-                new Thread(new ClientHandler(receivePacket)).start();
+                new Thread(new ClientHandler(receivePacket, this)).start();
             }
         } catch(Exception e){
             e.printStackTrace();
@@ -39,9 +51,11 @@ public class UDPServer {
 
 class ClientHandler implements Runnable {
     private DatagramPacket receivePacket;
+    private UDPServer server;
 
-    public ClientHandler(DatagramPacket receivePacket) {
+    public ClientHandler(DatagramPacket receivePacket, UDPServer server) {
         this.receivePacket = receivePacket;
+        this.server = server;
     }
 
 
@@ -53,30 +67,26 @@ class ClientHandler implements Runnable {
             responseSocket = new DatagramSocket();
 
             //Extract client message
-            String clientMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("Client received: " + clientMessage);
-            String[] parts = clientMessage.split(",");
-            if (parts.length ==  3) {
-                String userId = parts[0];
-                String timestamp = parts[1];
-                String message = parts[2];
+            Packets.UDPPacket clientMessage = Packets.UDPPacket.BytesToUDPPacket(receivePacket.getData());
 
-                //Display the message
+            InetAddress clientAddress = receivePacket.getAddress();
+            int clientPort = receivePacket.getPort();
 
-                System.out.println("User: " + userId + ", Timestamp: " + timestamp + ", Message: " + message);
+            if(clientMessage.getAck()==0 && clientMessage.getTask()==null){ //quer dizer que é a ligação do cliente ao servidor
+                this.server.addDevice(clientAddress, clientMessage.getDevice_id());
 
-                //Generate a response
-                String responseMessage = "Server received your message: " + message;
-                byte[] sendData = responseMessage.getBytes();
-
-                //Send response to client using the new socket
-                InetAddress clientAddress = receivePacket.getAddress();
-                int clientPort = receivePacket.getPort();
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                responseSocket.send(sendPacket);
-            } else {
-                System.out.println("Server received an invalid message");
+                //mandar ack e tarefas
             }
+            else{ // é um ack (não sei o que é suposto fazer com o ack)
+
+            }
+            //Generate a response
+
+            /* Send response to client using the new socket
+
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+            responseSocket.send(sendPacket);
+            */
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
