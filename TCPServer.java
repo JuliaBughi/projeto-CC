@@ -1,3 +1,5 @@
+package org.example;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,7 +16,7 @@ public class TCPServer {
             socket = new ServerSocket(6666);
 
             while (true) {
-                Socket clientsSocket = tcpServer.accept();
+                Socket clientsSocket = socket.accept();
                 //ler o conteúdo do alertflow
                 BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientsSocket.getInputStream()));
 

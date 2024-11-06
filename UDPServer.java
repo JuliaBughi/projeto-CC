@@ -1,8 +1,11 @@
+package org.example;
+
 import java.io.*;
 import java.net.*;
-import com.google.gson.Gson;
 import java.util.*;
-import Packet.*;
+
+import org.example.Task.*;
+import org.example.Packet.*;
 
 //USADO APENAS COMO BASE, NÃO FUNCIONA NO CORE
 public class UDPServer {
@@ -95,6 +98,8 @@ class ClientHandler implements Runnable {
         }
     }
 }
+
+
 
 // ao iniciar o cliente também temos de por o seu ip, o ip do server, socket do server e o seu nome ("r1")
 // o nome do cliente tem de ser mandado para o server para ele depois saber para onde manda as tarefas

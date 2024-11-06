@@ -1,16 +1,38 @@
-package Task;
+package org.example.Task;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.google.gson.annotations.SerializedName;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class Task {
-    @SerializedName("task_id")
-    String task_id;
-    @SerializedName("frequency")
-    int frequency;
-    @SerializedName("devices")
-    List<Device> devices;
-    @Seriali
+    private String task_id;
+    private int frequency;
+    private List<Device> devices;
+
+    public String getTask_id() {
+        return task_id;
+    }
+
+    public void setTask_id(String task_id) {
+        this.task_id = task_id;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
+    }
+
+    public List<Device> getDevices() {
+        return devices;
+    }
+
+    public void setDevices(List<Device> devices) {
+        this.devices = devices;
+    }
 
     @Override
     public String toString() {
@@ -20,27 +42,43 @@ public class Task {
                 ", devices=" + devices +
                 '}';
     }
-}
 
-class ListTasks{
-    List<Task> tasks;
-
-    @Override
-    public String toString() {
-        return "Task.ListTasks{" +
-                "tasks=" + tasks +
-                '}';
+    public void jsonReader(String filepath) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        File jsonFile = new File(filepath);
+        Task[] tasks = objectMapper.readValue(jsonFile,Task[].class);
     }
-
 }
 
 class Device {
-    @SerializedName("device_id")
-    String device_id;
-    @SerializedName("device_metrics")
-    DeviceMetrics device_metrics;
-    @SerializedName("link_metrics")
-    LinkMetrics link_metrics;
+
+    private String device_id;
+    private DeviceMetrics device_metrics;
+    private LinkMetrics link_metrics;
+
+    public String getDevice_id() {
+        return device_id;
+    }
+
+    public void setDevice_id(String device_id) {
+        this.device_id = device_id;
+    }
+
+    public DeviceMetrics getDevice_metrics() {
+        return device_metrics;
+    }
+
+    public void setDevice_metrics(DeviceMetrics device_metrics) {
+        this.device_metrics = device_metrics;
+    }
+
+    public LinkMetrics getLink_metrics() {
+        return link_metrics;
+    }
+
+    public void setLink_metrics(LinkMetrics link_metrics) {
+        this.link_metrics = link_metrics;
+    }
 
     @Override
     public String toString() {
@@ -53,12 +91,33 @@ class Device {
 }
 
 class DeviceMetrics {
-    @SerializedName("cpu_usage")
-    boolean cpu_usage;
-    @SerializedName("ram_usage")
-    boolean ram_usage;
-    @SerializedName("interface_stats")
-    List<String> interface_stats;
+    private boolean cpu_usage;
+    private boolean ram_usage;
+    private List<String> interface_stats;
+
+    public boolean getCpu_usage() {
+        return cpu_usage;
+    }
+
+    public void setCpu_usage(boolean cpu_usage) {
+        this.cpu_usage = cpu_usage;
+    }
+
+    public boolean getRam_usage() {
+        return ram_usage;
+    }
+
+    public void setRam_usage(boolean ram_usage) {
+        this.ram_usage = ram_usage;
+    }
+
+    public List<String> getInterface_stats() {
+        return interface_stats;
+    }
+
+    public void setInterface_stats(List<String> interface_stats) {
+        this.interface_stats = interface_stats;
+    }
 
     @Override
     public String toString() {
@@ -71,16 +130,51 @@ class DeviceMetrics {
 }
 
 class LinkMetrics {
-    @SerializedName("bandwidth")
-    Bandwidth bandwidth;
-    @SerializedName("jitter")
-    Jitter jitter;
-    @SerializedName("packet_loss")
-    PacketLoss packet_loss;
-    @SerializedName("latency")
-    Latency latency;
-    @SerializedName("alertflow_conditions")
-    AlertFlowConditions alertflow_conditions;
+    private Bandwidth bandwidth;
+    private Jitter jitter;
+    private PacketLoss packet_loss;
+    private Latency latency;
+    private AlertFlowConditions alertflow_conditions;
+
+    public Bandwidth getBandwidth() {
+        return bandwidth;
+    }
+
+    public void setBandwidth(Bandwidth bandwidth) {
+        this.bandwidth = bandwidth;
+    }
+
+    public Jitter getJitter() {
+        return jitter;
+    }
+
+    public void setJitter(Jitter jitter) {
+        this.jitter = jitter;
+    }
+
+    public PacketLoss getPacket_loss() {
+        return packet_loss;
+    }
+
+    public void setPacket_loss(PacketLoss packet_loss) {
+        this.packet_loss = packet_loss;
+    }
+
+    public Latency getLatency() {
+        return latency;
+    }
+
+    public void setLatency(Latency latency) {
+        this.latency = latency;
+    }
+
+    public AlertFlowConditions getAlertflow_conditions() {
+        return alertflow_conditions;
+    }
+
+    public void setAlertflow_conditions(AlertFlowConditions alertflow_conditions) {
+        this.alertflow_conditions = alertflow_conditions;
+    }
 
     @Override
     public String toString() {
@@ -95,18 +189,60 @@ class LinkMetrics {
 }
 
 class Bandwidth {
-    @SerializedName("tool")
     String tool;
-    @SerializedName("role")
     String role;
-    @SerializedName("server_address")
     String server_address;
-    @SerializedName("duration")
     int duration;
-    @SerializedName("transport_type")
     String transport_type;
-    @SerializedName("frequency")
     int frequency;
+
+    public String getTool() {
+        return tool;
+    }
+
+    public void setTool(String tool) {
+        this.tool = tool;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getServer_address() {
+        return server_address;
+    }
+
+    public void setServer_address(String server_address) {
+        this.server_address = server_address;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public String getTransport_type() {
+        return transport_type;
+    }
+
+    public void setTransport_type(String transport_type) {
+        this.transport_type = transport_type;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
+    }
 
     @Override
     public String toString() {
@@ -153,14 +289,42 @@ class PacketLoss extends Bandwidth{
 }
 
 class Latency {
-    @SerializedName("tool")
     private String tool;
-    @SerializedName("destination")
     private String destination;
-    @SerializedName("packet_count")
     private int count;
-    @SerializedName("frequency")
     private int frequency;
+
+    public String getTool() {
+        return tool;
+    }
+
+    public void setTool(String tool) {
+        this.tool = tool;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
+    }
 
     @Override
     public String toString() {
@@ -174,16 +338,51 @@ class Latency {
 }
 
 class AlertFlowConditions {
-    @SerializedName("cpu_usage")
     private int cpu_usage;
-    @SerializedName("ram_usage")
     private int ram_usage;
-    @SerializedName("interface_stats")
     private int interface_stats;
-    @SerializedName("packet_loss")
     private int packet_loss;
-    @SerializedName("jitter")
     private int jitter;
+
+    public int getCpu_usage() {
+        return cpu_usage;
+    }
+
+    public void setCpu_usage(int cpu_usage) {
+        this.cpu_usage = cpu_usage;
+    }
+
+    public int getRam_usage() {
+        return ram_usage;
+    }
+
+    public void setRam_usage(int ram_usage) {
+        this.ram_usage = ram_usage;
+    }
+
+    public int getInterface_stats() {
+        return interface_stats;
+    }
+
+    public void setInterface_stats(int interface_stats) {
+        this.interface_stats = interface_stats;
+    }
+
+    public int getPacket_loss() {
+        return packet_loss;
+    }
+
+    public void setPacket_loss(int packet_loss) {
+        this.packet_loss = packet_loss;
+    }
+
+    public int getJitter() {
+        return jitter;
+    }
+
+    public void setJitter(int jitter) {
+        this.jitter = jitter;
+    }
 
     @Override
     public String toString() {

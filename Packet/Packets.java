@@ -1,7 +1,7 @@
-package Packet;
+package org.example.Packet;
 
 import java.io.*;
-import Task.*;
+import org.example.Task.*;
 
 public class Packets {
 

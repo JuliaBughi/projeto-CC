@@ -1,4 +1,6 @@
-import Packet.Packets;
+package org.example;
+
+import org.example.Packet.Packets;
 
 import java.net.*;
 import java.text.SimpleDateFormat;
@@ -34,7 +36,7 @@ public class UDPClient {
             InetAddress serverAddress = InetAddress.getByName(server_ip); //o stor falou sobre colocar também o 10.0.0...
 
             while(true){
-
+                /*
                 //Send message to server
                 byte[] sendData = clientMessage.getBytes();
                 //aqui tem de preparar o pacote para mandar
@@ -49,6 +51,8 @@ public class UDPClient {
                 Packets.UDPPacket serverResponse = Packets.UDPPacket.BytesToUDPPacket(receivePacket.getData());
 
                 //tem de se fazer a situação do ack
+                */
+
             }
         } catch (Exception e){
             e.printStackTrace();
