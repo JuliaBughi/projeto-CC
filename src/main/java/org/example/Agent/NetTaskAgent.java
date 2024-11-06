@@ -30,6 +30,13 @@ public class NetTaskAgent {
             socket = new DatagramSocket();
             InetAddress serverAddress = InetAddress.getByName(server_ip); //o stor falou sobre colocar também o 10.0.0...
 
+            //envio do registo para o servidor ver como é que se tem de mandar o ack 0 de registo para o sv
+            String registMessage = "Register;" + device_id + ";ack=0";
+            byte[] sendData = registMessage.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, server_socket);
+            socket.send(sendPacket);
+            // aqui foi enviado o registo
+
             while(true){
                 /*
                 //Send message to server

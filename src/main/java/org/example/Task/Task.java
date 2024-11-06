@@ -1,4 +1,4 @@
-package org.example.Task;
+package src.main.java.org.example.Task;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -43,14 +43,16 @@ public class Task {
                 '}';
     }
 
-    public void jsonReader(String filepath) throws IOException {
+    public static List<Task> jsonReader(String filepath) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         File jsonFile = new File(filepath);
         Task[] tasks = objectMapper.readValue(jsonFile,Task[].class);
+
+        return List.of(tasks);
     }
 }
 
-class Device {
+public class Device {
 
     private String device_id;
     private DeviceMetrics device_metrics;

@@ -2,9 +2,10 @@ package src.main.java.org.example.Server;
 
 import java.net.*;
 import java.util.*;
+import java.io.*;
 
-import org.example.Task.*;
-import org.example.Packet.*;
+import src.main.java.org.example.Task.*;
+import src.main.java.org.example.Packet.*;
 
 //USADO APENAS COMO BASE, NÃO FUNCIONA NO CORE
 public class NetTaskServer {
@@ -14,15 +15,37 @@ public class NetTaskServer {
         new Thread(UDPServer::startUDPServer).start();
     }*/
 
-    private Map<InetAddress,String> mapDevices;  // par ip->device_id
+    private Map<InetAddress,String> mapDevices = new HashMap<>();  // par ip->device_id
+    private List<Task> taskList = new ArrayList<>(); //lista de tarefas carregadas do json
+
+    public NetTaskServer(String filepath) throws IOException {
+        //carregar tarefas ao iniciar servidor - não sei bem o que ficou decidido com o stor
+        this.taskList = Task.jsonReader(filepath);
+    }
 
     public void addDevice(InetAddress ip, String device_id){
         this.mapDevices.put(ip, device_id);
+
+    }
+
+    public List<Task> getTasksForDevice(String device_id) {
+        List<Task> tasksForDevice = new ArrayList<>();
+        for (Task task : taskList) {
+            for (Device device : task.getDevices()) {
+                if (device.getDevice_id().equals(device_id)) {
+                    tasksForDevice.add(task);  // Adiciona a tarefa se o device_id corresponder
+                    break;  // Não precisa procurar mais dispositivos dentro dessa tarefa
+                }
+            }
+        }
+        return tasksForDevice;  // Retorna a lista de tarefas associadas ao device_id
     }
 
     public String getDeviceByIp(InetAddress ip){
         return this.mapDevices.get(ip);
     }
+
+
 
 
     private void main(String[] args) {

@@ -13,11 +13,19 @@ public class Packets {
 
         //vai ser preciso fazer os construtores
 
-        public UDPPacket(UDPPacket p){
+        public NetTaskPacket(int nr_seq, String device_id, int ack,Task task){
+            this.nr_seq = nr_seq;
+            this.device_id = device_id;
+            this.ack = ack;
+            this.task = task;
+        }
+
+        //Construtor de cópia
+        public NetTaskPacket(NetTaskPacket p){
             this.nr_seq = p.nr_seq;
-            this.device_id = p.device_id;
-            this.ack = p.ack;
-            this.task = p.task;
+            this.device_id = p.getDevice_id();
+            this.ack = p.getAck();
+            this.task = p.getTask();
         }
 
         public int getNr_seq(){
