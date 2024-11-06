@@ -1,11 +1,12 @@
-package org.example;
+package src.main.java.org.example.Agent;
 
 import java.io.*;
 import java.net.*;
+
 public class NMS_Agent {
 
     // Endereço e portas do servidor
-    private static final String SERVER_ADDRESS = "localhost"; // por ser localhost não tem de se meter o IP?
+    private static final String SERVER_ADDRESS = "localhost";
     private static final int UDP_PORT = 9876;
     private static final int TCP_PORT = 6666;
 
@@ -38,21 +39,5 @@ public class NMS_Agent {
 
     }
 
-    // Método para enviar mensagem via TCP
-    // mais uma vez tem que se dar como argumento o pacote
-    private static void sendTCPMessage(String message) throws IOException {
 
-        Socket clientSocket = new Socket(SERVER_ADDRESS, TCP_PORT);
-        OutputStream outToServer = clientSocket.getOutputStream();
-        // esta linha de baixo tem que ser adaptada ao pacote
-        outToServer.write((message + "\n").getBytes());
-
-        // Receber resposta do servidor
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        // passar a resposta para pacote
-        String response = inFromServer.readLine();
-        // pode-se deixar esta mensagem para ter feedback
-        System.out.println("TCP Agent received: " + response);
-
-    }
 }

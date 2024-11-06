@@ -1,14 +1,9 @@
-package org.example;
-
-import org.example.Packet.Packets;
+package src.main.java.org.example.Agent;
 
 import java.net.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
-public class UDPClient {
+public class NetTaskAgent {
 
     private String client_ip;
     private String device_id;

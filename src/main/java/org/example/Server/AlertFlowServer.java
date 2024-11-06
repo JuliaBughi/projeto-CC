@@ -1,4 +1,4 @@
-package org.example;
+package src.main.java.org.example.Server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class TCPServer {
+public class AlertFlowServer {
 
     private void main(String[] args) throws IOException {
         ServerSocket socket = null;

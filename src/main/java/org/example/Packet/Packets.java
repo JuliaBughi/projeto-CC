@@ -1,11 +1,11 @@
-package org.example.Packet;
+package src.main.java.org.example.Packet;
 
 import java.io.*;
-import org.example.Task.*;
+import src.main.java.org.example.Task.*;
 
 public class Packets {
 
-    public class UDPPacket{
+    public static class NetTaskPacket{
         private int nr_seq;
         private String device_id;
         private int ack; // 1 se for um ack
@@ -36,22 +36,9 @@ public class Packets {
             return this.task;
         }
 
-        public static byte[] UDPPacketToBytes(UDPPacket udpPacket) throws IOException {
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
-            objStream.writeObject(udpPacket);
-            objStream.flush();
-            return byteStream.toByteArray();
-        }
-
-        public static UDPPacket BytesToUDPPacket(byte[] data) throws IOException, ClassNotFoundException {
-            ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
-            ObjectInputStream objStream = new ObjectInputStream(byteStream);
-            return (UDPPacket) objStream.readObject();
-        }
     }
 
-    public class TCPPacket {
+    public static class Packet {
         private int nr_seq;
 
         //tem que se criar uma classe para pacotes do alertflow(acho eu)

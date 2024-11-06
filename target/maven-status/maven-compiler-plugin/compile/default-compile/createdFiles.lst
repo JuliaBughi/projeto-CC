@@ -3,9 +3,9 @@ org/example/ClientHandler.class
 org/example/Task/PacketLoss.class
 org/example/Task/AlertFlowConditions.class
 org/example/TCPServer.class
+org/example/Task/Jitter.class
 org/example/Packet/Packets$UDPPacket.class
 org/example/UDPClient.class
-org/example/Task/Jitter.class
 org/example/Task/Latency.class
 org/example/Packet/Packets$TCPPacket.class
 org/example/UDPServer.class
