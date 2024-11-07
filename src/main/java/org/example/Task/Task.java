@@ -3,7 +3,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Task {
     private String task_id;
@@ -48,11 +51,53 @@ public class Task {
         File jsonFile = new File(filepath);
         Task[] tasks = objectMapper.readValue(jsonFile,Task[].class);
 
-        return List.of(tasks);
+        List<Task> l = new ArrayList<>(Arrays.asList(tasks));
+
+        return l;
+    }
+
+    public static String TasksToString(List<Task> tasks, String device_id) {
+        return tasks.stream()
+                .map(task -> TaskToString(task, device_id))
+                .collect(Collectors.joining("#")); // as tarefas ficam divididas por #
+    }
+
+    public static List<Task> StringToTasks(String serializedTasks) {
+        List<Task> tasks = new ArrayList<>();
+        String[] taskStrings = serializedTasks.split("#");
+
+        for (String taskString : taskStrings) {
+            tasks.add(StringToTask(taskString));
+        }
+
+        return tasks;
+    }
+
+    public static String TaskToString(Task task,String device_id) {
+
+        Device d = (Device) task.devices.stream().filter(device -> device != null && device.getDevice_id().equals(device_id));
+
+        String device = Device.DeviceToString(d);
+
+        return String.format("%s;%d;%s", task.task_id, task.frequency,device);
+    }
+
+    private static Task StringToTask(String taskString){
+        String[] parts = taskString.split(";");
+        if (parts.length < 3) return null;
+
+        Task task = new Task();
+        task.task_id = parts[0];
+        task.frequency = Integer.parseInt(parts[1]);
+
+        String s = parts[2];
+        task.devices = Arrays.asList(Device.StringToDevice(s));
+
+        return task;
     }
 }
 
-public class Device {
+class Device {
 
     private String device_id;
     private DeviceMetrics device_metrics;
@@ -89,6 +134,25 @@ public class Device {
                 ", device_metrics=" + device_metrics +
                 ", link_metrics=" + link_metrics +
                 '}';
+    }
+
+    public static String DeviceToString(Device device) {
+
+        String deviceMetrics = DeviceMetrics.DeviceMetricsToString(device.device_metrics);
+        String linkMetrics = LinkMetrics.LinkMetricsToString(device.link_metrics);
+        return String.format("%s;%s;%s",device.device_id, deviceMetrics, linkMetrics);
+    }
+
+    public static Device StringToDevice(String deviceString) {
+        String[] parts = deviceString.split(";");
+        //if (parts.length < 3) return null;
+
+        Device device = new Device();
+        device.device_id = parts[0];
+        device.device_metrics = DeviceMetrics.StringToDeviceMetrics(parts[1]);
+        device.link_metrics = LinkMetrics.StringToLinkMetrics(parts[2]);
+
+        return device;
     }
 }
 
@@ -128,6 +192,24 @@ class DeviceMetrics {
                 ", ram_usage=" + ram_usage +
                 ", interface_stats=" + interface_stats +
                 '}';
+    }
+
+    public static String DeviceMetricsToString(DeviceMetrics metrics) {
+        String interfaceStats = String.join("|", metrics.interface_stats);
+        return String.format("%b,%b,%s",
+                metrics.cpu_usage, metrics.ram_usage, interfaceStats);
+    }
+
+    public static DeviceMetrics StringToDeviceMetrics(String metricsString) {
+        String[] parts = metricsString.split(",");
+        if (parts.length < 3) return null;
+
+        DeviceMetrics metrics = new DeviceMetrics();
+        metrics.cpu_usage = Boolean.parseBoolean(parts[0]);
+        metrics.ram_usage = Boolean.parseBoolean(parts[1]);
+        metrics.interface_stats = Arrays.asList(parts[2].split("\\|"));
+
+        return metrics;
     }
 }
 
@@ -187,6 +269,29 @@ class LinkMetrics {
                 ", latency=" + latency +
                 ", alertflow_conditions=" + alertflow_conditions +
                 '}';
+    }
+
+    public static String LinkMetricsToString(LinkMetrics metrics) {
+        String bandwidth = Bandwidth.BandwidthToString(metrics.bandwidth);
+        String jitter = Jitter.JitterToString(metrics.jitter);
+        String packetLoss = PacketLoss.PacketLossToString(metrics.packet_loss);
+        String latency = Latency.LatencyToString(metrics.latency);
+        String alertFlow = AlertFlowConditions.AlertFlowConditionsToString(metrics.alertflow_conditions);
+        return String.format("%s;%s;%s;%s;%s", bandwidth, jitter, packetLoss, latency, alertFlow);
+    }
+
+    public static LinkMetrics StringToLinkMetrics(String linkMetricsString) {
+        String[] parts = linkMetricsString.split(";");
+        if (parts.length < 5) return null;
+
+        LinkMetrics linkMetrics = new LinkMetrics();
+        linkMetrics.bandwidth = Bandwidth.StringToBandwidth(parts[0]);
+        linkMetrics.jitter = Jitter.StringToJitter(parts[1]);
+        linkMetrics.packet_loss = PacketLoss.StringToPacketLoss(parts[2]);
+        linkMetrics.latency = Latency.StringToLatency(parts[3]);
+        linkMetrics.alertflow_conditions = AlertFlowConditions.StringToAlertFlowConditions(parts[4]);
+
+        return linkMetrics;
     }
 }
 
@@ -257,6 +362,27 @@ class Bandwidth {
                 ", frequency=" + frequency +
                 '}';
     }
+
+    public static String BandwidthToString(Bandwidth bandwidth) {
+        return String.format("%s,%s,%s,%d,%s,%d",
+                bandwidth.tool, bandwidth.role, bandwidth.server_address,
+                bandwidth.duration, bandwidth.transport_type, bandwidth.frequency);
+    }
+
+    public static Bandwidth StringToBandwidth(String bandwidthString) {
+        String[] parts = bandwidthString.split(",");
+        if (parts.length < 6) return null;
+
+        Bandwidth bandwidth = new Bandwidth();
+        bandwidth.tool = parts[0];
+        bandwidth.role = parts[1];
+        bandwidth.server_address = parts[2];
+        bandwidth.duration = Integer.parseInt(parts[3]);
+        bandwidth.transport_type = parts[4];
+        bandwidth.frequency = Integer.parseInt(parts[5]);
+
+        return bandwidth;
+    }
 }
 
 class Jitter extends Bandwidth{
@@ -271,6 +397,13 @@ class Jitter extends Bandwidth{
                 ", transport_type='" + transport_type + '\'' +
                 ", frequency=" + frequency +
                 '}';
+    }
+    public static String JitterToString(Jitter jitter) {
+        return BandwidthToString(jitter);
+    }
+
+    public static Jitter StringToJitter(String jitterString) {
+        return (Jitter) StringToBandwidth(jitterString);
     }
 }
 
@@ -288,6 +421,13 @@ class PacketLoss extends Bandwidth{
                 '}';
     }
 
+    public static String PacketLossToString(PacketLoss packetLoss) {
+        return BandwidthToString(packetLoss);
+    }
+
+    public static PacketLoss StringToPacketLoss(String packetLossString) {
+        return (PacketLoss) StringToBandwidth(packetLossString);
+    }
 }
 
 class Latency {
@@ -337,6 +477,26 @@ class Latency {
                 ", frequency=" + frequency +
                 '}';
     }
+
+    public static String LatencyToString(Latency latency) {
+        if (latency == null) return "";
+        return String.format("%s,%s,%d,%d",
+                latency.getTool(), latency.getDestination(), latency.getCount(), latency.getFrequency());
+    }
+
+    public static Latency StringToLatency(String latencyString) {
+        String[] parts = latencyString.split(",");
+        if (parts.length < 4) return null;
+
+        Latency latency = new Latency();
+        latency.tool = parts[0];
+        latency.destination = parts[1];
+        latency.count = Integer.parseInt(parts[2]);
+        latency.frequency = Integer.parseInt(parts[3]);
+
+        return latency;
+    }
+
 }
 
 class AlertFlowConditions {
@@ -395,6 +555,26 @@ class AlertFlowConditions {
                 ", packet_loss=" + packet_loss +
                 ", jitter=" + jitter +
                 '}';
+    }
+
+    public static String AlertFlowConditionsToString(AlertFlowConditions alertFlow) {
+        return String.format("%d,%d,%d,%d,%d",
+                alertFlow.cpu_usage, alertFlow.ram_usage, alertFlow.interface_stats,
+                alertFlow.packet_loss, alertFlow.jitter);
+    }
+
+    public static AlertFlowConditions StringToAlertFlowConditions(String alertFlowString) {
+        String[] parts = alertFlowString.split(",");
+        if (parts.length < 5) return null;
+
+        AlertFlowConditions alertFlow = new AlertFlowConditions();
+        alertFlow.cpu_usage = Integer.parseInt(parts[0]);
+        alertFlow.ram_usage = Integer.parseInt(parts[1]);
+        alertFlow.interface_stats = Integer.parseInt(parts[2]);
+        alertFlow.packet_loss = Integer.parseInt(parts[3]);
+        alertFlow.jitter = Integer.parseInt(parts[4]);
+
+        return alertFlow;
     }
 }
 
