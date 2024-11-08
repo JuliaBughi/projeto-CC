@@ -1,4 +1,4 @@
-package src.main.java.org.example.Agent;
+package org.example.Agent;
 
 public class AlertFlowAgent {
 

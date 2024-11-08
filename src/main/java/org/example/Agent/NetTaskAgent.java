@@ -32,9 +32,9 @@ public class NetTaskAgent {
             InetAddress serverAddress = InetAddress.getByName(server_ip); //o stor falou sobre colocar também o 10.0.0...
 
             //envio do registo para o servidor ver como é que se tem de mandar o ack 0 de registo para o sv
-            Packets.NetTaskPacket packet = new Packets.NetTaskPacket(1,device_id,0,null);
+            NetTaskPacket packet = new NetTaskPacket(1,device_id,0,null);
 
-            String message = Packets.NetTaskPacket.NetTaskPacketToString(packet);
+            String message = NetTaskPacket.NetTaskPacketToString(packet);
             DatagramPacket sendPacket = new DatagramPacket(message.getBytes(), message.length(), serverAddress, server_socket);
             socket.send(sendPacket);
             // aqui foi enviado o registo

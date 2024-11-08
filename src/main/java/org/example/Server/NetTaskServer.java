@@ -3,12 +3,9 @@ package org.example.Server;
 import java.net.*;
 import java.util.*;
 import java.io.*;
-import java.util.stream.Collectors;
 
 import org.example.Task.*;
-import org.example.Packet.*;
 
-//USADO APENAS COMO BASE, NÃO FUNCIONA NO CORE
 public class NetTaskServer {
     private Map<InetAddress,String> mapDevices = new HashMap<>();  // par ip->device_id
     private List<Task> taskList = new ArrayList<>(); //lista de tarefas carregadas do json
@@ -20,7 +17,6 @@ public class NetTaskServer {
 
     public void addDevice(InetAddress ip, String device_id){
         this.mapDevices.put(ip, device_id);
-
     }
 
     public List<Task> getTaskList(){
@@ -54,7 +50,6 @@ public class NetTaskServer {
         }
     }
 }
-
 
 // ao iniciar o cliente também temos de por o seu ip, o ip do server, socket do server e o seu nome ("r1")
 // o nome do cliente tem de ser mandado para o server para ele depois saber para onde manda as tarefas

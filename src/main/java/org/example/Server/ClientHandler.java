@@ -4,6 +4,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.List;
+import org.example.Packet.*;
 
 import org.example.Packet.*;
 import org.example.Task.Task;
@@ -21,11 +22,10 @@ public class ClientHandler implements Runnable {
         public void run() {
             DatagramSocket responseSocket = null;
             try {
-                //Create a new socket for sending the response
                 responseSocket = new DatagramSocket();
 
                 String packet = new String(receivePacket.getData(),0,receivePacket.getLength());
-                Packets.NetTaskPacket clientMessage = Packets.NetTaskPacket.StringToNetTaskPacket(packet);
+                NetTaskPacket clientMessage = NetTaskPacket.StringToNetTaskPacket(packet);
 
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
@@ -33,9 +33,12 @@ public class ClientHandler implements Runnable {
                 if(clientMessage.getAck()==0 && clientMessage.getTasks()==null){ //quer dizer que é a ligação do cliente ao servidor
                     this.server.addDevice(clientAddress, clientMessage.getDevice_id());
 
-                    List<Task> tasksForDevice = Task.getTasksForDevice(clientMessage.getDevice_id(),server.getTaskList());
+                    List<Task> tasksForDevice = Task.getTasksForDevice(clientMessage.getDevice_id(), server.getTaskList());
 
                     // fazer um NetTask packet para mandar de volta para o cliente com as tarefas
+                    NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
+                    String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
+
                     //envia task para client
                     if (tasksForDevice != null) {
                         byte[] sendData = taskForDevice.toString().getBytes();
@@ -49,7 +52,6 @@ public class ClientHandler implements Runnable {
                 //else {  é um ack (não sei o que é suposto fazer com o ack)
 
                 //}
-                //Generate a response
 
             /* Send response to client using the new socket
 

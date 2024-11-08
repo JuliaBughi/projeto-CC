@@ -1,4 +1,4 @@
-package src.main.java.org.example.Server;
+package org.example.Server;
 
 public class NMS_Server {
 
