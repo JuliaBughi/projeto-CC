@@ -1,7 +1,9 @@
-package src.main.java.org.example.Packet;
+package org.example.Packet;
 
 import java.io.*;
-import src.main.java.org.example.Task.*;
+import java.util.List;
+
+import org.example.Task.*;
 
 public class Packets {
 
@@ -9,23 +11,16 @@ public class Packets {
         private int nr_seq;
         private String device_id;
         private int ack; // 1 se for um ack
-        private Task task; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
+        private List<Task> tasks; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
 
         //vai ser preciso fazer os construtores
+        public NetTaskPacket(){}
 
-        public NetTaskPacket(int nr_seq, String device_id, int ack,Task task){
+        public NetTaskPacket(int nr_seq, String device_id, int ack,List<Task> tasks){
             this.nr_seq = nr_seq;
             this.device_id = device_id;
             this.ack = ack;
-            this.task = task;
-        }
-
-        //Construtor de cópia
-        public NetTaskPacket(NetTaskPacket p){
-            this.nr_seq = p.nr_seq;
-            this.device_id = p.getDevice_id();
-            this.ack = p.getAck();
-            this.task = p.getTask();
+            this.tasks = tasks;
         }
 
         public int getNr_seq(){
@@ -40,8 +35,34 @@ public class Packets {
             return this.ack;
         }
 
-        public Task getTask(){
-            return this.task;
+        public List<Task> getTasks(){
+            return this.tasks;
+        }
+
+        public static String NetTaskPacketToString(NetTaskPacket packet){
+            if(packet.ack==1 && packet.nr_seq>1){ // se for ack e não for o primeiro pacote, não precisa de ter device_id nem tasks
+                return String.format("%d,%d",packet.nr_seq,packet.ack);
+            }
+
+            return String.format("%d,%s,%d,%s",packet.nr_seq,packet.device_id,
+                    packet.ack,Task.TasksToString(packet.tasks,packet.device_id));
+        }
+
+        public static NetTaskPacket StringToNetTaskPacket(String message){
+            String[] parts = message.split(",");
+            NetTaskPacket packet = new NetTaskPacket();
+
+            if (parts.length == 2){
+                packet.nr_seq = Integer.parseInt(parts[0]);
+                packet.ack = Integer.parseInt(parts[1]);
+            }
+
+            packet.nr_seq = Integer.parseInt(parts[0]);
+            packet.device_id = parts[1];
+            packet.ack = Integer.parseInt(parts[2]);
+            packet.tasks = Task.StringToTasks(parts[3]);
+
+            return packet;
         }
 
     }

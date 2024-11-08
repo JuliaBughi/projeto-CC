@@ -1,20 +1,15 @@
-package src.main.java.org.example.Server;
+package org.example.Server;
 
 import java.net.*;
 import java.util.*;
 import java.io.*;
+import java.util.stream.Collectors;
 
-import src.main.java.org.example.Task.*;
-import src.main.java.org.example.Packet.*;
+import org.example.Task.*;
+import org.example.Packet.*;
 
 //USADO APENAS COMO BASE, NÃO FUNCIONA NO CORE
 public class NetTaskServer {
-    /*
-    public static void main(String[] args) {   ---- acho que isto não é preciso
-        // Iniciar threads para UDP e TCP
-        new Thread(UDPServer::startUDPServer).start();
-    }*/
-
     private Map<InetAddress,String> mapDevices = new HashMap<>();  // par ip->device_id
     private List<Task> taskList = new ArrayList<>(); //lista de tarefas carregadas do json
 
@@ -28,25 +23,13 @@ public class NetTaskServer {
 
     }
 
-    public List<Task> getTasksForDevice(String device_id) {
-        List<Task> tasksForDevice = new ArrayList<>();
-        for (Task task : taskList) {
-            for (Device device : task.getDevices()) {
-                if (device.getDevice_id().equals(device_id)) {
-                    tasksForDevice.add(task);  // Adiciona a tarefa se o device_id corresponder
-                    break;  // Não precisa procurar mais dispositivos dentro dessa tarefa
-                }
-            }
-        }
-        return tasksForDevice;  // Retorna a lista de tarefas associadas ao device_id
+    public List<Task> getTaskList(){
+        return this.taskList; // ver depois se é preciso fazer um clone da lista
     }
 
     public String getDeviceByIp(InetAddress ip){
         return this.mapDevices.get(ip);
     }
-
-
-
 
     private void main(String[] args) {
         DatagramSocket socket = null;

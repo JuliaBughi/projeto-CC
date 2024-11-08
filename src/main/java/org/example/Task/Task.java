@@ -1,4 +1,4 @@
-package src.main.java.org.example.Task;
+package org.example.Task;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -54,6 +54,19 @@ public class Task {
         List<Task> l = new ArrayList<>(Arrays.asList(tasks));
 
         return l;
+    }
+
+    public static List<Task> getTasksForDevice(String device_id, List<Task> list) {
+        List<Task> tasksForDevice = new ArrayList<>();
+        for (Task task : list) {
+            for (Device device : task.getDevices()) {
+                if (device.getDevice_id().equals(device_id)) {
+                    tasksForDevice.add(task);  // Adiciona a tarefa se o device_id corresponder
+                    break;  // Não precisa procurar mais dispositivos dentro dessa tarefa
+                }
+            }
+        }
+        return tasksForDevice;  // Retorna a lista de tarefas associadas ao device_id
     }
 
     public static String TasksToString(List<Task> tasks, String device_id) {

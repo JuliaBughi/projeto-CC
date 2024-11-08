@@ -1,12 +1,12 @@
-package src.main.java.org.example.Server;
+package org.example.Server;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.List;
 
-import src.main.java.org.example.Packet.*;
-import src.main.java.org.example.Task.Task;
+import org.example.Packet.*;
+import org.example.Task.Task;
 
 public class ClientHandler implements Runnable {
         private final DatagramPacket receivePacket;
@@ -24,19 +24,20 @@ public class ClientHandler implements Runnable {
                 //Create a new socket for sending the response
                 responseSocket = new DatagramSocket();
 
-                //Extract client message  ver porque agora não tem o BytesToUDPPacket
-                Packets.NetTaskPacket clientMessage = Packets.NetTaskPacket.BytesToUDPPacket(receivePacket.getData());
+                String packet = new String(receivePacket.getData(),0,receivePacket.getLength());
+                Packets.NetTaskPacket clientMessage = Packets.NetTaskPacket.StringToNetTaskPacket(packet);
 
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
 
-                if(clientMessage.getAck()==0 && clientMessage.getTask()==null){ //quer dizer que é a ligação do cliente ao servidor
+                if(clientMessage.getAck()==0 && clientMessage.getTasks()==null){ //quer dizer que é a ligação do cliente ao servidor
                     this.server.addDevice(clientAddress, clientMessage.getDevice_id());
 
-                    List<Task> tasksForDevice = server.getTasksForDevice(clientMessage.getDevice_id());
+                    List<Task> tasksForDevice = Task.getTasksForDevice(clientMessage.getDevice_id(),server.getTaskList());
 
+                    // fazer um NetTask packet para mandar de volta para o cliente com as tarefas
                     //envia task para client
-                    if (taskForDevice != null) {
+                    if (tasksForDevice != null) {
                         byte[] sendData = taskForDevice.toString().getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
                         responseSocket.send(sendPacket);
