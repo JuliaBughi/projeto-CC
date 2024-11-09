@@ -6,7 +6,7 @@ import java.io.*;
 
 import org.example.Task.*;
 
-public class NetTaskServer {
+public class NetTaskServer implements Runnable{
     private Map<InetAddress,String> mapDevices = new HashMap<>();  // par ip->device_id
     private List<Task> taskList = new ArrayList<>(); //lista de tarefas carregadas do json
 
@@ -27,7 +27,7 @@ public class NetTaskServer {
         return this.mapDevices.get(ip);
     }
 
-    private void main(String[] args) {
+    public void run() {
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket(9876);

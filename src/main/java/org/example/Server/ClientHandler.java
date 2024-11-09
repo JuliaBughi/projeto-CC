@@ -30,34 +30,28 @@ public class ClientHandler implements Runnable {
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
 
-                if(clientMessage.getAck()==0 && clientMessage.getTasks()==null){ //quer dizer que é a ligação do cliente ao servidor
+                if(clientMessage.getAck()==0 && clientMessage.getNr_seq()==1){ //quer dizer que é a ligação do cliente ao servidor
                     this.server.addDevice(clientAddress, clientMessage.getDevice_id());
 
                     List<Task> tasksForDevice = Task.getTasksForDevice(clientMessage.getDevice_id(), server.getTaskList());
 
-                    // fazer um NetTask packet para mandar de volta para o cliente com as tarefas
-                    NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
-                    String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
+                    if(tasksForDevice.isEmpty()){
+                        NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
+                        String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
+                        byte[] sendData = serverResponse.getBytes();
 
-                    //envia task para client
-                    if (tasksForDevice != null) {
-                        byte[] sendData = taskForDevice.toString().getBytes();
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
                         responseSocket.send(sendPacket);
                     }
+                    else{
+                        // se não houver tasks para mandar fica em espera?? (não faz muito sentido)
+                    }
+
                 }
                 else if (clientMessage.getAck() == 1) {
                     System.out.println("ACK recebido do cliente: " + clientMessage.getDevice_id());
                 }
-                //else {  é um ack (não sei o que é suposto fazer com o ack)
 
-                //}
-
-            /* Send response to client using the new socket
-
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-            responseSocket.send(sendPacket);
-            */
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

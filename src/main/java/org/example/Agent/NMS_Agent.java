@@ -2,6 +2,7 @@ package org.example.Agent;
 
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
 
 public class NMS_Agent {
 
@@ -10,34 +11,29 @@ public class NMS_Agent {
     private static final int UDP_PORT = 9876;
     private static final int TCP_PORT = 6666;
 
-    public static void main(String[] args) throws Exception {
+    public void main(String[] args) throws Exception {
         // Iniciar comunicação UDP e TCP
-        sendUDPMessage("Hello from UDP Agent");
-        sendTCPMessage("Alert: Critical condition from TCP Agent");
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter client Ip: ");
+        String client_ip = scanner.nextLine();
+
+        System.out.println("Enter device id: ");
+        String device_id = scanner.nextLine();
+
+        System.out.println("Enter server Ip: ");
+        String server_ip = scanner.nextLine();
+
+        System.out.println("Enter server socket: ");
+        int server_socket = scanner.nextInt();
+
+        NetTaskAgent netTaskAgent = new NetTaskAgent(client_ip,device_id,server_ip,server_socket);
+
+        new Thread(netTaskAgent).start();
+        //depois deve ser preciso fazer outra par ao AlertFlow
     }
 
-    // Método para enviar mensagem via UDP
-    // passar como argumento o pacote que se quer enviar para o server
-    private static void sendUDPMessage(String message) throws IOException{
 
-        DatagramSocket udpSocket = new DatagramSocket();
-        InetAddress ipAddress = InetAddress.getByName(SERVER_ADDRESS);
-        // aqui têm que se fazer o getBytes do pacote
-        byte[] sendData = message.getBytes();
-
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipAddress, UDP_PORT);
-        udpSocket.send(sendPacket);
-
-        // Receber resposta do servidor
-        byte[] receiveData = new byte[1024]; // ver melhor depois este 1024
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        udpSocket.receive(receivePacket);
-        // fazer o getdata para dar um pacote
-        String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
-        // pode-se deixar esta mensagem para ter feedback
-        System.out.println("UDP Agent received: " + response);
-
-    }
 
 
 }
