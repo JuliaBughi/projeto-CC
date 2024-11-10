@@ -1,11 +1,13 @@
 package org.example.Agent;
 
 import java.net.*;
-import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.example.Packet.*;
 
 public class NetTaskAgent implements Runnable{
-
     private String client_ip;
     private String device_id;
     private String server_ip;
@@ -17,7 +19,6 @@ public class NetTaskAgent implements Runnable{
         this.server_ip = server_ip;
         this.server_socket = server_socket;
     }
-
 
     public void run(){
         DatagramSocket socket = null;
@@ -34,6 +35,23 @@ public class NetTaskAgent implements Runnable{
             socket.send(sendPacket);
             // aqui foi enviado o registo
 
+            //supostamente temos que receber aqui a primeira resposta e depois implementar essa lógica abaixo
+
+            // Agendar coleta de métricas
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            scheduler.scheduleAtFixedRate(() -> {
+                String iperfMetrics = MetricCollector.runIperf(server_ip);
+                String pingMetrics = MetricCollector.runPing(server_ip);
+                // Enviar métricas para o servidor
+                String metricsMessage = "iperf:" + iperfMetrics + ";ping:" + pingMetrics;
+                byte[] metricsData = metricsMessage.getBytes();
+                DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, serverAddress, serverPort);
+                try {
+                    socket.send(metricsPacket);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }}, 0, 30, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
+
             while(true){
                 //Receive response from server
                 byte[] buffer = new byte[1024];
@@ -43,13 +61,19 @@ public class NetTaskAgent implements Runnable{
                 String aux = new String(receivePacket.getData(),0, receivePacket.getLength());
                 NetTaskPacket received = NetTaskPacket.StringToNetTaskPacket(aux);
 
-
-
             }
         } catch (Exception e){
             e.printStackTrace();
         } finally{
-            if(socket != null && socket.isClosed()){}
+            if(socket != null && !socket.isClosed()){
+                socket.close();
+            }
         }
     }
 }
+
+
+
+
+
+
