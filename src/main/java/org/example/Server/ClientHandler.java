@@ -30,27 +30,31 @@ public class ClientHandler implements Runnable {
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
 
-                if(clientMessage.getAck()==0 && clientMessage.getNr_seq()==1){ //quer dizer que é a ligação do cliente ao servidor
-                    this.server.addDevice(clientAddress, clientMessage.getDevice_id());
+                //podemos assumir que é logo a primeira ligação
+                this.server.addDevice(clientAddress, clientMessage.getDevice_id());
 
-                    List<Task> tasksForDevice = Task.getTasksForDevice(clientMessage.getDevice_id(), server.getTaskList());
+                List<Task> tasksForDevice = Task.getTasksForDevice(clientMessage.getDevice_id(), server.getTaskList());
 
-                    if(tasksForDevice.isEmpty()){
-                        NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
-                        String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
-                        byte[] sendData = serverResponse.getBytes();
-
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                        responseSocket.send(sendPacket);
-                    }
-                    else{
-                        // se não houver tasks para mandar fica em espera?? (não faz muito sentido)
-                    }
-
+                if(tasksForDevice.isEmpty()){
+                    // se não houver tasks para mandar fecha-se a ligação?
                 }
+                else{
+                    NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
+                    String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
+                    byte[] sendData = serverResponse.getBytes();
+
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+                    responseSocket.send(sendPacket);
+
+                    //vai receber o ack do cliente por mandar as tasks
+                    //e partir daqui é que vai começar a receber os dados das tasks que os clientes realizam
+                }
+                /*
                 else if (clientMessage.getAck() == 1) {
                     System.out.println("ACK recebido do cliente: " + clientMessage.getDevice_id());
                 }
+                */
+
 
             } catch (Exception e) {
                 e.printStackTrace();

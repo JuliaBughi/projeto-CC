@@ -1,11 +1,13 @@
 package org.example.Task;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Task {
@@ -35,6 +37,10 @@ public class Task {
 
     public void setDevices(List<Device> devices) {
         this.devices = devices;
+    }
+
+    public Bandwidth getBandwidth(){
+        return null;
     }
 
     @Override
@@ -226,6 +232,7 @@ class DeviceMetrics {
     }
 }
 
+// até aqui era tudo obrigatório estar no Json, daqui para baixo é opcional
 class LinkMetrics {
     private Bandwidth bandwidth;
     private Jitter jitter;
@@ -386,6 +393,9 @@ class Bandwidth {
         String[] parts = bandwidthString.split(",");
         if (parts.length < 6) return null;
 
+        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
+            return null;
+
         Bandwidth bandwidth = new Bandwidth();
         bandwidth.tool = parts[0];
         bandwidth.role = parts[1];
@@ -501,6 +511,9 @@ class Latency {
         String[] parts = latencyString.split(",");
         if (parts.length < 4) return null;
 
+        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
+            return null;
+
         Latency latency = new Latency();
         latency.tool = parts[0];
         latency.destination = parts[1];
@@ -512,7 +525,7 @@ class Latency {
 
 }
 
-class AlertFlowConditions {
+class AlertFlowConditions { // se no Json alguma metrica for -1 então é para ignorar
     private int cpu_usage;
     private int ram_usage;
     private int interface_stats;

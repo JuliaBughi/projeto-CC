@@ -1,11 +1,13 @@
 package org.example.Agent;
 
 import java.net.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.example.Packet.*;
+import org.example.Task.*;
 
 public class NetTaskAgent implements Runnable{
     private String client_ip;
@@ -24,9 +26,8 @@ public class NetTaskAgent implements Runnable{
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket();
-            InetAddress serverAddress = InetAddress.getByName(server_ip); //o stor falou sobre colocar também o 10.0.0...
+            InetAddress serverAddress = InetAddress.getByName(server_ip);
 
-            //envio do registo para o servidor ver como é que se tem de mandar o ack 0 de registo para o sv
             NetTaskPacket packet = new NetTaskPacket(1,device_id,0,null);
             String message = NetTaskPacket.NetTaskPacketToString(packet);
             byte[] sendData = message.getBytes();
@@ -35,23 +36,19 @@ public class NetTaskAgent implements Runnable{
             socket.send(sendPacket);
             // aqui foi enviado o registo
 
-            //supostamente temos que receber aqui a primeira resposta e depois implementar essa lógica abaixo
+            //supostamente temos que receber aqui a primeira resposta
+            byte[] receivePacket = new byte[1024];
+            DatagramPacket serverResponse = new DatagramPacket(receivePacket, receivePacket.length);
+            socket.receive(serverResponse);
 
-            // Agendar coleta de métricas
-            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-            scheduler.scheduleAtFixedRate(() -> {
-                String iperfMetrics = MetricCollector.runIperf(server_ip);
-                String pingMetrics = MetricCollector.runPing(server_ip);
-                // Enviar métricas para o servidor
-                String metricsMessage = "iperf:" + iperfMetrics + ";ping:" + pingMetrics;
-                byte[] metricsData = metricsMessage.getBytes();
-                DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, serverAddress, serverPort);
-                try {
-                    socket.send(metricsPacket);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }}, 0, 30, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
 
+
+            String response = new String(serverResponse.getData(),0,serverResponse.getLength());
+            NetTaskPacket serverMessage = NetTaskPacket.StringToNetTaskPacket(response);
+
+            this.ScheduleMetricCollect(serverMessage, socket, serverAddress);
+
+            /*
             while(true){
                 //Receive response from server
                 byte[] buffer = new byte[1024];
@@ -60,8 +57,9 @@ public class NetTaskAgent implements Runnable{
 
                 String aux = new String(receivePacket.getData(),0, receivePacket.getLength());
                 NetTaskPacket received = NetTaskPacket.StringToNetTaskPacket(aux);
-
             }
+            */
+
         } catch (Exception e){
             e.printStackTrace();
         } finally{
@@ -69,6 +67,24 @@ public class NetTaskAgent implements Runnable{
                 socket.close();
             }
         }
+    }
+
+    public void ScheduleMetricCollect(NetTaskPacket packet, DatagramSocket socket, InetAddress server_address){
+        List<Task> l = packet.getTasks();
+
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            String iperfMetrics = MetricCollector.runIperf(server_address);
+            String pingMetrics = MetricCollector.runPing(server_address);
+            // Enviar métricas para o servidor
+            String metricsMessage = "iperf:" + iperfMetrics + ";ping:" + pingMetrics;
+            byte[] metricsData = metricsMessage.getBytes();
+            DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, server_address, server_socket);
+            try {
+                socket.send(metricsPacket);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }}, 0, 30, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
     }
 }
 
