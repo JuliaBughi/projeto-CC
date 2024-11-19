@@ -1,47 +1,51 @@
-package src.main.java.org.example.Server;
+package org.example.Server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class AlertFlowServer {
+class ClientHandlerAF implements Runnable{
 
-    private void main(String[] args) throws IOException {
-        ServerSocket socket = null;
+    Socket socket;
+
+    ClientHandlerAF(Socket socket){
+        this.socket = socket;
+    }
+
+    public void run(){
+        try{
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream());
+
+            String clientMessage = in.readLine();
+
+            out.flush();
+            socket.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+public class AlertFlowServer implements Runnable {
+
+    public void run(){
+        ServerSocket ss = null;
 
         try{
-            socket = new ServerSocket(6666);
+            ss = new ServerSocket(6666);
 
             while (true) {
-                Socket clientsSocket = socket.accept();
-                //ler o conteúdo do alertflow
-                BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientsSocket.getInputStream()));
-
-                // podemos ter um print para confirmar as coisas
-                String clientMessage = inFromClient.readLine();
-                System.out.println("TCP Server received: " + clientMessage);
-
-                // Responder com ACK
-                OutputStream ack = clientsSocket.getOutputStream();
-                //tem de se criar um paco te de ack para mandar como resposta
-
-                //ack.write(pacote.getBytes());
-
-                clientsSocket.close();
+                Socket socket = ss.accept();
+                new Thread(new ClientHandlerAF(socket)).start();
             }
 
 
         } catch(Exception e){
             e.printStackTrace();
-        } finally{
-            if (socket != null && !socket.isClosed()) {
-                socket.close();
         }
     }
 
 
-    }
 }

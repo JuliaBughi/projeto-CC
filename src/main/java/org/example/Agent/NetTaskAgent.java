@@ -36,29 +36,18 @@ public class NetTaskAgent implements Runnable{
             socket.send(sendPacket);
             // aqui foi enviado o registo
 
-            //supostamente temos que receber aqui a primeira resposta
+            //receber aqui a primeira resposta
             byte[] receivePacket = new byte[1024];
             DatagramPacket serverResponse = new DatagramPacket(receivePacket, receivePacket.length);
             socket.receive(serverResponse);
-
-
-
             String response = new String(serverResponse.getData(),0,serverResponse.getLength());
             NetTaskPacket serverMessage = NetTaskPacket.StringToNetTaskPacket(response);
 
-            this.ScheduleMetricCollect(serverMessage, socket, serverAddress);
-
-            /*
-            while(true){
-                //Receive response from server
-                byte[] buffer = new byte[1024];
-                DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
-                socket.receive(receivePacket);
-
-                String aux = new String(receivePacket.getData(),0, receivePacket.getLength());
-                NetTaskPacket received = NetTaskPacket.StringToNetTaskPacket(aux);
+            if(serverMessage.getAck()==1){ // se há tasks para o cliente fazer
+                this.ScheduleMetricCollect(serverMessage, socket, serverAddress);
+                // também tem que se fazer aqui a coleta das alertflow conditions
             }
-            */
+            // se ack == 2 terminar ligação porque não há tasks para ele
 
         } catch (Exception e){
             e.printStackTrace();
@@ -71,6 +60,27 @@ public class NetTaskAgent implements Runnable{
 
     public void ScheduleMetricCollect(NetTaskPacket packet, DatagramSocket socket, InetAddress server_address){
         List<Task> l = packet.getTasks();
+
+        for(Task t : l) {
+            if (!t.getBandwidth().startsWith("*")) { // quer dizer que tem de fazer a bandwidth
+                String[] parts = t.getBandwidth().split(",");
+                // aqui tem que se o iperf periodicamente
+                // a minha dúvida é como é que se faz em relação ao nr de sequencia
+            }
+
+            if (!t.getJitter().startsWith("*")) { // fazer o iperf para sacar o jitter
+                String[] parts = t.getBandwidth().split(",");
+            }
+
+            if (!t.getPacketLoss().startsWith("*")){ // fazer o iperf para sacar o jitter
+                String[] parts = t.getBandwidth().split(",");
+            }
+
+            if (!t.getLatency().startsWith("*")){ // fazer o ping para sacar a latency
+                String[] parts = t.getBandwidth().split(",");
+            }
+
+        }
 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
@@ -86,6 +96,9 @@ public class NetTaskAgent implements Runnable{
                 e.printStackTrace();
             }}, 0, 30, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
     }
+
+    //perceber se aqui é melhor ir buscar os argumentos à bandwidth,jitter,... e fazer aqui a coleta de metricas
+    // ou se é melhor fazer dentro da task a coleta de métricas
 }
 
 

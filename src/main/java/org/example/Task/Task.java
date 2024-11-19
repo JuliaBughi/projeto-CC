@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,8 +41,20 @@ public class Task {
         this.devices = devices;
     }
 
-    public Bandwidth getBandwidth(){
-        return null;
+    public String getBandwidth(){
+        return devices.get(0).getBandwidth();
+    }
+
+    public String getJitter(){
+        return devices.get(0).getJitter();
+    }
+
+    public String getPacketLoss(){
+        return devices.get(0).getPacketLoss();
+    }
+
+    public String getLatency(){
+        return devices.get(0).getLatency();
     }
 
     @Override
@@ -114,6 +128,10 @@ public class Task {
 
         return task;
     }
+
+    public void collectMetrics(DatagramSocket socket, InetAddress server_address){
+
+    }
 }
 
 class Device {
@@ -144,6 +162,22 @@ class Device {
 
     public void setLink_metrics(LinkMetrics link_metrics) {
         this.link_metrics = link_metrics;
+    }
+
+    public String getBandwidth(){
+        return link_metrics.getBandwidthString();
+    }
+
+    public String getJitter(){
+        return link_metrics.getJitterString();
+    }
+
+    public String getPacketLoss(){
+        return link_metrics.getPacketLossString();
+    }
+
+    public String getLatency(){
+        return link_metrics.getLatencyString();
     }
 
     @Override
@@ -278,6 +312,22 @@ class LinkMetrics {
 
     public void setAlertflow_conditions(AlertFlowConditions alertflow_conditions) {
         this.alertflow_conditions = alertflow_conditions;
+    }
+
+    public String getBandwidthString(){
+        return Bandwidth.BandwidthToString(bandwidth);
+    }
+
+    public String getJitterString(){
+        return Jitter.JitterToString(jitter);
+    }
+
+    public String getPacketLossString(){
+        return PacketLoss.PacketLossToString(packet_loss);
+    }
+
+    public String getLatencyString(){
+        return Latency.LatencyToString(latency);
     }
 
     @Override

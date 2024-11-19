@@ -28,9 +28,10 @@ public class NMS_Agent {
         int server_socket = scanner.nextInt();
 
         NetTaskAgent netTaskAgent = new NetTaskAgent(client_ip,device_id,server_ip,server_socket);
+        AlertFlowAgent alertFlowAgent = new AlertFlowAgent(server_ip,server_socket);
 
         new Thread(netTaskAgent).start();
-        //depois deve ser preciso fazer outra par ao AlertFlow
+        new Thread(alertFlowAgent).start();
     }
 
 

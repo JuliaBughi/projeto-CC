@@ -37,6 +37,14 @@ public class ClientHandler implements Runnable {
 
                 if(tasksForDevice.isEmpty()){
                     // se não houver tasks para mandar fecha-se a ligação?
+                    // provavelmente tinha de mandar um pacote ao cliente a dizer para fechar a ligação
+                    //mete-se o ack=2 para o cliente saber que é para terminar a ligação
+                    NetTaskPacket newPacket = new NetTaskPacket(2, clientMessage.getDevice_id(), 1, tasksForDevice);
+                    String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
+                    byte[] sendData = serverResponse.getBytes();
+
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+                    responseSocket.send(sendPacket);
                 }
                 else{
                     NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
@@ -46,15 +54,14 @@ public class ClientHandler implements Runnable {
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
                     responseSocket.send(sendPacket);
 
+                    while(true){
+                        // ver se recebe um ack(do cliente a dizer que recebeu as tarefas)
+                        // ou se são dados enviados pelo cliente
+                    }
+
                     //vai receber o ack do cliente por mandar as tasks
                     //e partir daqui é que vai começar a receber os dados das tasks que os clientes realizam
                 }
-                /*
-                else if (clientMessage.getAck() == 1) {
-                    System.out.println("ACK recebido do cliente: " + clientMessage.getDevice_id());
-                }
-                */
-
 
             } catch (Exception e) {
                 e.printStackTrace();

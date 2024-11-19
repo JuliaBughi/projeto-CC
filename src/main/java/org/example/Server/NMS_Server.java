@@ -34,9 +34,9 @@ public class NMS_Server {
 
         //não sei bem se é preciso dar-lhe metricas como no cliente
         NetTaskServer netTaskServer = new NetTaskServer(path);
+        AlertFlowServer alertFlowServer = new AlertFlowServer();
 
         new Thread(netTaskServer).start();
-        // fazer depois a mesma coisa para o alertFlow
-
+        new Thread(alertFlowServer).start();
     }
 }
