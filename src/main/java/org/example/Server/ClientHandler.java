@@ -46,7 +46,7 @@ public class ClientHandler implements Runnable {
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
                     responseSocket.send(sendPacket);
                 }
-                else{
+                else{ // aqui o device_id já não importa porque ele já foi registado no map do server
                     NetTaskPacket newPacket = new NetTaskPacket(1, clientMessage.getDevice_id(), 1, tasksForDevice);
                     String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
                     byte[] sendData = serverResponse.getBytes();
@@ -59,8 +59,6 @@ public class ClientHandler implements Runnable {
                         // ou se são dados enviados pelo cliente
                     }
 
-                    //vai receber o ack do cliente por mandar as tasks
-                    //e partir daqui é que vai começar a receber os dados das tasks que os clientes realizam
                 }
 
             } catch (Exception e) {

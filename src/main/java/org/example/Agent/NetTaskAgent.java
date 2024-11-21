@@ -12,8 +12,9 @@ import org.example.Task.*;
 public class NetTaskAgent implements Runnable{
     private String client_ip;
     private String device_id;
-    private String server_ip;
-    private int server_socket;
+    private static String server_ip;
+    private static int server_socket;
+    private int nr_seq = 1;
 
     public NetTaskAgent(String client_ip, String device_id, String server_ip,int server_socket){
         this.client_ip = client_ip;
@@ -28,7 +29,7 @@ public class NetTaskAgent implements Runnable{
             socket = new DatagramSocket();
             InetAddress serverAddress = InetAddress.getByName(server_ip);
 
-            NetTaskPacket packet = new NetTaskPacket(1,device_id,0,null);
+            NetTaskPacket packet = new NetTaskPacket(nr_seq,device_id,0,null);
             String message = NetTaskPacket.NetTaskPacketToString(packet);
             byte[] sendData = message.getBytes();
 
@@ -66,39 +67,69 @@ public class NetTaskAgent implements Runnable{
                 String[] parts = t.getBandwidth().split(",");
                 // aqui tem que se o iperf periodicamente
                 // a minha dúvida é como é que se faz em relação ao nr de sequencia
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), "b", socket);
             }
 
             if (!t.getJitter().startsWith("*")) { // fazer o iperf para sacar o jitter
-                String[] parts = t.getBandwidth().split(",");
+                String[] parts = t.getJitter().split(",");
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), "j", socket);
             }
 
             if (!t.getPacketLoss().startsWith("*")){ // fazer o iperf para sacar o jitter
-                String[] parts = t.getBandwidth().split(",");
+                String[] parts = t.getPacketLoss().split(",");
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), "p", socket);
             }
 
             if (!t.getLatency().startsWith("*")){ // fazer o ping para sacar a latency
-                String[] parts = t.getBandwidth().split(",");
+                String[] parts = t.getLatency().split(",");
+                schedulerPing(parts[0],parts[1],Integer.parseInt(parts[2]),Integer.parseInt(parts[3]), socket);
             }
 
         }
 
+        // para o iperf convém fazer x retrays até desistir e dar mandar fail
+        // ou então dar um certo tempo para ele ter a certeza que não dá
+        // no json só pedir jitter e packet loss quando for -u, bandwidth pode-se pedir sempre
+        // convém que a frequencia do server seja mais pequena do que a do cliente
+        // fazer -i (frequencia servidor) no server e -t no cliente (duração do teste=frequencia cliente)
+
+    }
+
+    public static void schedulerIperf(String tool, String role, String server_address, int duration,String transport_type, int frequency, String type, DatagramSocket socket){
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
-            String iperfMetrics = MetricCollector.runIperf(server_address);
-            String pingMetrics = MetricCollector.runPing(server_address);
-            // Enviar métricas para o servidor
-            String metricsMessage = "iperf:" + iperfMetrics + ";ping:" + pingMetrics;
-            byte[] metricsData = metricsMessage.getBytes();
-            DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, server_address, server_socket);
+
+            double result = MetricCollector.runIperf(tool,role,server_address,duration,transport_type,type);
+           // depois tem que se diferenciar se é bandwidth, jitter ou packetLoss
+
+            // perceber como se vão mandar as merdas no pacote (se calhar tem que se alterar o pacote)
+
+            //byte[] metricsData = metricsMessage.getBytes();
+            //DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, server_ip, server_socket);
             try {
                 socket.send(metricsPacket);
             } catch (Exception e) {
                 e.printStackTrace();
-            }}, 0, 30, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
+            }}, 0, frequency, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
+
     }
 
-    //perceber se aqui é melhor ir buscar os argumentos à bandwidth,jitter,... e fazer aqui a coleta de metricas
-    // ou se é melhor fazer dentro da task a coleta de métricas
+    public static void schedulerPing(String tool, String destination, int count, int frequency,DatagramSocket socket){
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            double latency = MetricCollector.runPing(tool,destination,count);
+            // perceber como se vão mandar as merdas no pacote (se calhar tem que se alterar o pacote)
+
+            //byte[] metricsData = metricsMessage.getBytes();
+            //DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, server_ip, server_socket);
+            try {
+                socket.send(metricsPacket);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }}, 0, frequency, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
+
+    }
+
 }
 
 
