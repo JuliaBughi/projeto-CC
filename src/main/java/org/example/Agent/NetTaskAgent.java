@@ -35,6 +35,7 @@ public class NetTaskAgent implements Runnable{
 
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, server_socket);
             socket.send(sendPacket);
+            System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
             //receber aqui a primeira resposta
@@ -43,8 +44,10 @@ public class NetTaskAgent implements Runnable{
             socket.receive(serverResponse);
             String response = new String(serverResponse.getData(),0,serverResponse.getLength());
             NetTaskPacket serverMessage = NetTaskPacket.StringToNetTaskPacket(response);
+            System.out.println("Confirmation of connection");
 
             if(serverMessage.getAck()==1){ // se há tasks para o cliente fazer
+                System.out.println("Tasks received, starting execution...");
                 this.ScheduleMetricCollect(serverMessage, socket, serverAddress);
                 // também tem que se fazer aqui a coleta das alertflow conditions
             }
@@ -54,6 +57,7 @@ public class NetTaskAgent implements Runnable{
             e.printStackTrace();
         } finally{
             if(socket != null && !socket.isClosed()){
+                System.out.println("No tasks received, closing connection...");
                 socket.close();
             }
         }

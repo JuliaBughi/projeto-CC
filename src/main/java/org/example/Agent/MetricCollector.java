@@ -153,10 +153,6 @@ public class MetricCollector {
         return -1;
     }
 
-
-
-
-
     //ex da ultima linha do output: rtt min/avg/max/mdev = 16.556/17.230/17.900/0.477 ms
     public static double parseLatency(String lastLine) {
         double averageLatency = -1;
@@ -175,6 +171,16 @@ public class MetricCollector {
         }
         return averageLatency;
     }
+
+    // Este dá print da percentagem atual do uso de CPU
+    // top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}'
+
+    //Este dá a percentagem de ram atual com o '%', depois tem de se tirar isso
+    //free -m | awk '/Mem:/ {printf "%.2f%%", $3/$2 * 100.0}'
+
+    //não faço a mínima de como se faz o interface stats
+
+    //não percebi bem como se fazem os outros depois - é baseados nos comandos do jitter e packet loss?
 
 
 

@@ -4,6 +4,7 @@ import java.net.*;
 import java.util.*;
 import java.io.*;
 
+import org.example.Packet.NetTaskPacket;
 import org.example.Task.*;
 
 public class NetTaskServer implements Runnable{
@@ -37,9 +38,12 @@ public class NetTaskServer implements Runnable{
                 byte[] buffer = new byte[1024];
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 
-                socket.receive(receivePacket);
+                String packet = new String(receivePacket.getData(),0,receivePacket.getLength());
+                NetTaskPacket clientMessage = NetTaskPacket.StringToNetTaskPacket(packet);
 
-                new Thread(new ClientHandler(receivePacket, this)).start();
+                System.out.println("Client " + clientMessage.getDevice_id() + " connected");
+
+                new Thread(new ClientHandler(clientMessage, this, receivePacket.getAddress(), receivePacket.getPort())).start();
             }
         } catch(Exception e){
             e.printStackTrace();

@@ -27,6 +27,14 @@ public class NMS_Agent {
         System.out.println("Enter server socket: ");
         int server_socket = scanner.nextInt();
 
+        // ou
+        /*
+        String client_ip = args[0];
+        String device_id = args[1];
+        String server_ip = args[2];
+        int server_socket = Integer.parseInt(args[3]);
+        */
+
         NetTaskAgent netTaskAgent = new NetTaskAgent(client_ip,device_id,server_ip,server_socket);
         AlertFlowAgent alertFlowAgent = new AlertFlowAgent(server_ip,server_socket);
 
