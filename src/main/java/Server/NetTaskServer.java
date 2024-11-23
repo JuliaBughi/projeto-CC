@@ -9,10 +9,10 @@ import Task.*;
 
 public class NetTaskServer implements Runnable{
     private Map<InetAddress,String> mapDevices = new HashMap<>();  // par ip->device_id
-    private List<Task> taskList = new ArrayList<>(); //lista de tarefas carregadas do json
+    private final List<Task> taskList; //lista de tarefas carregadas do json
+    private final int UDP_PORT = 9876;
 
     public NetTaskServer(String filepath) throws IOException {
-        //carregar tarefas ao iniciar servidor - não sei bem o que ficou decidido com o stor
         this.taskList = Task.jsonReader(filepath);
     }
 
@@ -21,17 +21,13 @@ public class NetTaskServer implements Runnable{
     }
 
     public List<Task> getTaskList(){
-        return this.taskList; // ver depois se é preciso fazer um clone da lista
-    }
-
-    public String getDeviceByIp(InetAddress ip){
-        return this.mapDevices.get(ip);
+        return this.taskList;
     }
 
     public void run() {
         DatagramSocket socket = null;
         try{
-            socket = new DatagramSocket(9876);
+            socket = new DatagramSocket(UDP_PORT);
             System.out.println("UDP Server running and waiting for clients");
 
             while (true) {

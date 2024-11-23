@@ -11,10 +11,10 @@ Task/Device.class
 Agent/NMS_Agent.class
 Task/AlertFlowConditions.class
 Task/Bandwidth.class
-Server/ClientHandler.class
 Task/Task.class
+Server/ClientHandler.class
 Task/LinkMetrics.class
 Packet/AlertFlowPacket.class
 Server/NMS_Server.class
-Agent/MetricCollector.class
 Task/PacketLoss.class
+Agent/MetricCollector.class

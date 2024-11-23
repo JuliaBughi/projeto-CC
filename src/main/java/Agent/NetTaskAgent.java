@@ -12,28 +12,26 @@ import Task.*;
 public class NetTaskAgent implements Runnable{
     private String client_ip;
     private String device_id;
-    private static String server_ip;
-    private static int server_socket;
-    private int nr_seq = 1;
+    private final InetAddress server_ip = InetAddress.getLoopbackAddress(); //isso supostamente é equivalente ao localhost, mas verificar
+    private final int UDP_PORT = 9876;
 
-    public NetTaskAgent(String client_ip, String device_id, String server_ip,int server_socket){
+    public NetTaskAgent(String client_ip, String device_id){
         this.client_ip = client_ip;
         this.device_id = device_id;
-        this.server_ip = server_ip;
-        this.server_socket = server_socket;
     }
 
     public void run(){
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket();
-            InetAddress serverAddress = InetAddress.getByName(server_ip);
 
+            int nr_seq = 1;
             NetTaskPacket packet = new NetTaskPacket(nr_seq,device_id,0,null);
             String message = NetTaskPacket.NetTaskPacketToString(packet);
             byte[] sendData = message.getBytes();
+            //é preciso transformar em nettaskpacket, especialmente este que nao tem dados nenhuns?
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, server_socket);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, server_ip, UDP_PORT);
             socket.send(sendPacket);
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
@@ -48,7 +46,7 @@ public class NetTaskAgent implements Runnable{
 
             if(serverMessage.getAck()==1){ // se há tasks para o cliente fazer
                 System.out.println("Tasks received, starting execution...");
-                this.ScheduleMetricCollect(serverMessage, socket, serverAddress);
+                this.ScheduleMetricCollect(serverMessage, socket, server_ip);
                 // também tem que se fazer aqui a coleta das alertflow conditions
             }
             // se ack == 2 terminar ligação porque não há tasks para ele

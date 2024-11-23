@@ -10,7 +10,6 @@ public class NetTaskPacket {
     private int ack; // 1 se for um ack
     private List<Task> tasks; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
 
-    //vai ser preciso fazer os construtores
     public NetTaskPacket(){
 
     }

@@ -13,8 +13,8 @@ import Task.Task;
 public class ClientHandler implements Runnable {
         private final NetTaskPacket receivePacket;
         private final NetTaskServer server;
-        private InetAddress clientAddress;
-        private int clientPort;
+        private final InetAddress clientAddress;
+        private final int clientPort;
 
 
     public ClientHandler(NetTaskPacket receivePacket, NetTaskServer server, InetAddress clientAddress, int clientPort) {
@@ -29,7 +29,6 @@ public class ClientHandler implements Runnable {
         DatagramSocket responseSocket = null;
         try {
             responseSocket = new DatagramSocket();
-
 
             //podemos assumir que é logo a primeira ligação
             this.server.addDevice(clientAddress, receivePacket.getDevice_id());
@@ -89,8 +88,6 @@ public class ClientHandler implements Runnable {
                     }
 
                 }
-
-
 
                 //ciclo para coleta das métricas
                 while(true){

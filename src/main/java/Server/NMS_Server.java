@@ -6,14 +6,12 @@ import java.io.File;
 
 public class NMS_Server {
 
-
     public static boolean jsonFileExists(String filepath) {
         File file = new File(filepath);
 
         // Check if the file exists and is a file (not a directory)
         return file.exists() && file.isFile();
     }
-
 
     public static void main(String[] args) throws IOException {
 
@@ -38,6 +36,7 @@ public class NMS_Server {
 
         new Thread(netTaskServer).start();
         new Thread(alertFlowServer).start();
+
         // aqui tem de ter outra thread para a interface com o gestor de redes
         // tem que se criar uma maneira de guardar as metricas mandadas pelos clientes para depois serem consultadas pelo gestor
         // as metricas têm de ter uma data associada para depois e conseguir pedir as metricas dos ultimos x minutos/horas
