@@ -6,19 +6,17 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import Packet.*;
-
-import Packet.*;
 import Task.Task;
 
-public class ClientHandler implements Runnable {
-        private final NetTaskPacket receivePacket;
+public class ClientHandlerNT implements Runnable {
+        private final NetTaskPacket helloPacket;
         private final NetTaskServer server;
         private final InetAddress clientAddress;
         private final int clientPort;
 
 
-    public ClientHandler(NetTaskPacket receivePacket, NetTaskServer server, InetAddress clientAddress, int clientPort) {
-            this.receivePacket = receivePacket;
+    public ClientHandlerNT(NetTaskPacket helloPacket, NetTaskServer server, InetAddress clientAddress, int clientPort) {
+            this.helloPacket = helloPacket;
             this.server = server;
             this.clientAddress = clientAddress;
             this.clientPort = clientPort;
@@ -31,22 +29,22 @@ public class ClientHandler implements Runnable {
             responseSocket = new DatagramSocket();
 
             //podemos assumir que é logo a primeira ligação
-            this.server.addDevice(clientAddress, receivePacket.getDevice_id());
+            this.server.addDevice(clientAddress, helloPacket.getDevice_id()); //aqui não é preciso gerir concorrência?
 
-            List<Task> tasksForDevice = Task.getTasksForDevice(receivePacket.getDevice_id(), server.getTaskList());
+            List<Task> tasksForDevice = Task.getTasksForDevice(helloPacket.getDevice_id(), server.getTaskList());
 
             if(tasksForDevice.isEmpty()){
                 // se não houver tasks para mandar fecha-se a ligação?
                 // provavelmente tinha de mandar um pacote ao cliente a dizer para fechar a ligação
                 //mete-se o ack=2 para o cliente saber que é para terminar a ligação
-                NetTaskPacket newPacket = new NetTaskPacket(2, receivePacket.getDevice_id(), 1, tasksForDevice);
+                NetTaskPacket newPacket = new NetTaskPacket(2, helloPacket.getDevice_id(), 1, tasksForDevice);
                 String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
                 byte[] sendData = serverResponse.getBytes();
 
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
                 responseSocket.send(sendPacket);
 
-                System.out.println("No tasks to send to client "+ receivePacket.getDevice_id());
+                System.out.println("No tasks to send to client "+ helloPacket.getDevice_id());
                 System.out.println("Closing connection...");
             }
             else{
@@ -60,14 +58,14 @@ public class ClientHandler implements Runnable {
 
                     try{
                         //envio do pacote
-                        NetTaskPacket newPacket = new NetTaskPacket(1, receivePacket.getDevice_id(), 1, tasksForDevice);
+                        NetTaskPacket newPacket = new NetTaskPacket(1, helloPacket.getDevice_id(), 1, tasksForDevice);
                         String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
                         byte[] sendData = serverResponse.getBytes();
 
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
                         responseSocket.send(sendPacket);
 
-                        System.out.println("Tasks sent to client "+ receivePacket.getDevice_id());
+                        System.out.println("Tasks sent to client "+ helloPacket.getDevice_id());
                         for(Task t : tasksForDevice)
                             System.out.println("Task "+t.getTask_id());
 
