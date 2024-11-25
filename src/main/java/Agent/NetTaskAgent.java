@@ -24,32 +24,27 @@ public class NetTaskAgent implements Runnable{
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket();
+            NTSender sender = new NTSender(socket);
+            NTReceiver receiver = new NTReceiver(socket);
 
             int nr_seq = 1;
-            NetTaskPacket packet = new NetTaskPacket(nr_seq,device_id,0,null);
-            String message = NetTaskPacket.NetTaskPacketToString(packet);
-            byte[] sendData = message.getBytes();
-            //é preciso transformar em nettaskpacket, especialmente este que nao tem dados nenhuns?
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, server_ip, UDP_PORT);
-            socket.send(sendPacket);
+            nr_seq = sender.sendData("",server_ip,UDP_PORT,nr_seq,device_id,0);
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
-            //receber aqui a primeira resposta
-            byte[] receivePacket = new byte[1024];
-            DatagramPacket serverResponse = new DatagramPacket(receivePacket, receivePacket.length);
-            socket.receive(serverResponse);
-            String response = new String(serverResponse.getData(),0,serverResponse.getLength());
-            NetTaskPacket serverMessage = NetTaskPacket.StringToNetTaskPacket(response);
+            NetTaskPacket answer = receiver.receive(1);
             System.out.println("Confirmation of connection");
 
-            if(serverMessage.getAck()==1){ // se há tasks para o cliente fazer
+
+
+            if(answer.getType()==1){ // se há tasks para o cliente fazer
                 System.out.println("Tasks received, starting execution...");
-                this.ScheduleMetricCollect(serverMessage, socket, server_ip);
+                this.ScheduleMetricCollect(answer, socket, server_ip);
                 // também tem que se fazer aqui a coleta das alertflow conditions
             }
-            // se ack == 2 terminar ligação porque não há tasks para ele
+
+            // se type == -1 terminar ligação porque não há tasks para ele
 
         } catch (Exception e){
             e.printStackTrace();
@@ -62,7 +57,8 @@ public class NetTaskAgent implements Runnable{
     }
 
     public void ScheduleMetricCollect(NetTaskPacket packet, DatagramSocket socket, InetAddress server_address){
-        List<Task> l = packet.getTasks();
+        String tasks = packet.getData();
+        List<Task> l = Task.StringToTasks(tasks);
 
         for(Task t : l) {
             if (!t.getBandwidth().startsWith("*")) { // quer dizer que tem de fazer a bandwidth

@@ -4,6 +4,7 @@ import java.net.*;
 import java.util.*;
 import java.io.*;
 
+import Packet.NTReceiver;
 import Packet.NetTaskPacket;
 import Task.*;
 
@@ -28,17 +29,14 @@ public class NetTaskServer implements Runnable {
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket(UDP_PORT);
+            NTReceiver receiver = new NTReceiver(socket);
 
             while (true) {
-                byte[] buffer = new byte[1024]; //pacotes recebidos tem tamanho 1024
-                DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
-
-                String packet = new String(receivePacket.getData(),0,receivePacket.getLength());
-                NetTaskPacket helloMessage = NetTaskPacket.StringToNetTaskPacket(packet);
+                NetTaskPacket helloMessage = receiver.receive(1);
 
                 System.out.println("Client " + helloMessage.getDevice_id() + " connected");
 
-                new Thread(new ClientHandlerNT(helloMessage, this, receivePacket.getAddress(), receivePacket.getPort())).start();
+                new Thread(new ClientHandlerNT(helloMessage, this, receiver.getSenderAddress(), receiver.getSenderPort())).start();
             }
         } catch(Exception e){
             e.printStackTrace();

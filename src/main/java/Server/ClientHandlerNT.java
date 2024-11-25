@@ -14,6 +14,8 @@ public class ClientHandlerNT implements Runnable {
         private final InetAddress clientAddress;
         private final int clientPort;
 
+        private String device_id;
+
 
     public ClientHandlerNT(NetTaskPacket helloPacket, NetTaskServer server, InetAddress clientAddress, int clientPort) {
             this.helloPacket = helloPacket;
@@ -27,65 +29,24 @@ public class ClientHandlerNT implements Runnable {
         DatagramSocket responseSocket = null;
         try {
             responseSocket = new DatagramSocket();
+            NTSender sender = new NTSender(responseSocket);
+
+            device_id = helloPacket.getDevice_id();
 
             //podemos assumir que é logo a primeira ligação
             this.server.addDevice(clientAddress, helloPacket.getDevice_id()); //aqui não é preciso gerir concorrência?
 
-            List<Task> tasksForDevice = Task.getTasksForDevice(helloPacket.getDevice_id(), server.getTaskList());
+            List<Task> tasksForDevice = Task.getTasksForDevice(device_id, server.getTaskList());
 
-            if(tasksForDevice.isEmpty()){
-                // se não houver tasks para mandar fecha-se a ligação?
-                // provavelmente tinha de mandar um pacote ao cliente a dizer para fechar a ligação
-                //mete-se o ack=2 para o cliente saber que é para terminar a ligação
-                NetTaskPacket newPacket = new NetTaskPacket(2, helloPacket.getDevice_id(), 1, tasksForDevice);
-                String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
-                byte[] sendData = serverResponse.getBytes();
+            if(tasksForDevice.isEmpty()){ // fechar a ligação se não há tasks para mandar
+                sender.sendData("",clientAddress,clientPort,2, device_id, -1);
 
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                responseSocket.send(sendPacket);
-
-                System.out.println("No tasks to send to client "+ helloPacket.getDevice_id());
+                System.out.println("No tasks to send to client "+ device_id);
                 System.out.println("Closing connection...");
             }
             else{
-
-                int tentativas = 0;
-                int maxTentativas = 5;
-                boolean ackRecebido = false;
-
-                //ciclo para retransmissão do pacote
-                while(tentativas < maxTentativas && !ackRecebido){
-
-                    try{
-                        //envio do pacote
-                        NetTaskPacket newPacket = new NetTaskPacket(1, helloPacket.getDevice_id(), 1, tasksForDevice);
-                        String serverResponse = NetTaskPacket.NetTaskPacketToString(newPacket);
-                        byte[] sendData = serverResponse.getBytes();
-
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                        responseSocket.send(sendPacket);
-
-                        System.out.println("Tasks sent to client "+ helloPacket.getDevice_id());
-                        for(Task t : tasksForDevice)
-                            System.out.println("Task "+t.getTask_id());
-
-                        responseSocket.setSoTimeout(5000);
-                        byte[] buffer = new byte[1024];
-                        DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
-
-                        responseSocket.receive(receivePacket);
-
-                        String ackResponse = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                        NetTaskPacket receivedPacket = NetTaskPacket.StringToNetTaskPacket(ackResponse);
-
-                        if(receivedPacket.getAck() == 1){
-                            ackRecebido = true;
-                        }
-                    } catch (SocketTimeoutException e) {
-                        tentativas++;
-                    }
-
-                }
+                String tasks = Task.TasksToString(tasksForDevice,device_id);
+                sender.sendData(tasks,clientAddress,clientPort,2,device_id,1);
 
                 //ciclo para coleta das métricas
                 while(true){

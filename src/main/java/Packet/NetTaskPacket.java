@@ -8,17 +8,57 @@ public class NetTaskPacket {
     private int nr_seq;
     private String device_id;
     private int ack; // 1 se for um ack
-    private List<Task> tasks; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
+    private int isLast; // caso o pacote tenah de ser partido isto serve para saber se é o ultimo pedaço
+    private int type; //flag para saber se manda tasks, se manda metricas,...
+    // type -1 - terminar ligação
+    // type 0 - olá do cliente ao server
+    // type 1 - mandar tasks
+    private String data; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
 
     public NetTaskPacket(){
 
     }
 
-    public NetTaskPacket(int nr_seq, String device_id, int ack, List<Task> tasks){
+    public NetTaskPacket(int nr_seq, String device_id, int ack,int isLast, int type, String data){
         this.nr_seq = nr_seq;
         this.device_id = device_id;
         this.ack = ack;
-        this.tasks = tasks;
+        this.isLast = isLast;
+        this.type = type;
+        this.data = data;
+    }
+
+    public NetTaskPacket(int nr_seq, String device_id, int type){ //ack
+        this.nr_seq = nr_seq;
+        this.device_id = device_id;
+        this.ack = 1;
+        this.isLast = 1;
+        this.type = type;
+        this.data = "";
+    }
+
+    public void setNr_seq(int nr_seq){
+        this.nr_seq = nr_seq;
+    }
+
+    public void setDevice_id(String device_id){
+        this.device_id = device_id;
+    }
+
+    public void setAck(int ack){
+        this.ack = ack;
+    }
+
+    public void setIsLast(int isLast){
+        this.isLast = isLast;
+    }
+
+    public void setType(int type){
+        this.type = type;
+    }
+
+    public void setData(String data){
+        this.data = data;
     }
 
     public int getNr_seq(){
@@ -33,8 +73,15 @@ public class NetTaskPacket {
         return this.ack;
     }
 
-    public List<Task> getTasks(){
-        return this.tasks;
+    public int getIsLast(){
+        return this.isLast;
+    }
+    public int getType(){
+        return this.type;
+    }
+
+    public String getData(){
+        return this.data;
     }
 
     public static String NetTaskPacketToString(NetTaskPacket packet){
@@ -42,8 +89,7 @@ public class NetTaskPacket {
             return String.format("%d,%d",packet.nr_seq,packet.ack);
         }
 
-        return String.format("%d,%s,%d,%s",packet.nr_seq,packet.device_id,
-                packet.ack,Task.TasksToString(packet.tasks,packet.device_id));
+        return String.format("%d,%s,%d,%d,%d,%s",packet.nr_seq,packet.device_id,packet.ack,packet.isLast,packet.type,packet.data);
     }
 
     public static NetTaskPacket StringToNetTaskPacket(String message){
@@ -58,7 +104,9 @@ public class NetTaskPacket {
         packet.nr_seq = Integer.parseInt(parts[0]);
         packet.device_id = parts[1];
         packet.ack = Integer.parseInt(parts[2]);
-        packet.tasks = Task.StringToTasks(parts[3]);
+        packet.isLast = Integer.parseInt(parts[3]);
+        packet.type = Integer.parseInt(parts[4]);
+        packet.data = parts[5];
 
         return packet;
     }
