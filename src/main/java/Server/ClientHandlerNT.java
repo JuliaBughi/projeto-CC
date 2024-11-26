@@ -13,8 +13,9 @@ public class ClientHandlerNT implements Runnable {
         private final NetTaskServer server;
         private final InetAddress clientAddress;
         private final int clientPort;
-
         private String device_id;
+
+        private int nr_seq=2;
 
 
     public ClientHandlerNT(NetTaskPacket helloPacket, NetTaskServer server, InetAddress clientAddress, int clientPort) {
@@ -30,6 +31,7 @@ public class ClientHandlerNT implements Runnable {
         try {
             responseSocket = new DatagramSocket();
             NTSender sender = new NTSender(responseSocket);
+            NTReceiver receiver = new NTReceiver(responseSocket);
 
             device_id = helloPacket.getDevice_id();
 
@@ -39,17 +41,21 @@ public class ClientHandlerNT implements Runnable {
             List<Task> tasksForDevice = Task.getTasksForDevice(device_id, server.getTaskList());
 
             if(tasksForDevice.isEmpty()){ // fechar a ligação se não há tasks para mandar
-                sender.sendData("",clientAddress,clientPort,2, device_id, -1);
+                sender.sendData("",clientAddress,clientPort,nr_seq, device_id, -1);
 
                 System.out.println("No tasks to send to client "+ device_id);
                 System.out.println("Closing connection...");
             }
             else{
                 String tasks = Task.TasksToString(tasksForDevice,device_id);
-                sender.sendData(tasks,clientAddress,clientPort,2,device_id,1);
+                sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
+                nr_seq++;
 
                 //ciclo para coleta das métricas
                 while(true){
+                    NetTaskPacket packet = receiver.receive(nr_seq); //pacotes com metricas
+                    nr_seq = packet.getNr_seq()+1;
+                    // perceber como se vão guardar as metricas
 
                 }
 

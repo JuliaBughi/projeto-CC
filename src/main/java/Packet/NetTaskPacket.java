@@ -13,10 +13,14 @@ public class NetTaskPacket {
     // type -1 - terminar ligação
     // type 0 - olá do cliente ao server
     // type 1 - mandar tasks
+    // type 2 - bandwidth
+    // type 3 - jitter
+    // type 4 - packetLoss
+    // type 5 - latency
+    // type 6 - metricas (cpu,ram,...)
     private String data; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
 
     public NetTaskPacket(){
-
     }
 
     public NetTaskPacket(int nr_seq, String device_id, int ack,int isLast, int type, String data){

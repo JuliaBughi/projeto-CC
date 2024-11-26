@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MetricCollector {
-    public static double runIperf(String tool, String role, String server_address, int duration, String transport_type,String type) {
+    public static double runIperf(String tool, String role, String server_address, int duration, String transport_type,int type) {
         String result1 = "";
         String result2 = "";
         try {
@@ -34,11 +34,11 @@ public class MetricCollector {
             }
             process.waitFor();
 
-            if(type.equals("b")) // bandwidth
+            if(type==2) // bandwidth
                 return parseBandwidth(result1,result2);
-            else if(type.equals("j")) //jitter
+            else if(type==3) //jitter
                 return parseJitter(result1,result2);
-            else // packet loss
+            else // packet loss == 4
                 return parsePacketLoss(result1,result2);
 
         } catch (Exception e) {

@@ -1,6 +1,10 @@
 package Agent;
 
+import java.io.IOException;
 import java.net.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -10,13 +14,16 @@ import Packet.*;
 import Task.*;
 
 public class NetTaskAgent implements Runnable{
-    private String client_ip;
-    private String device_id;
-    private final InetAddress server_ip = InetAddress.getLoopbackAddress(); //isso supostamente é equivalente ao localhost, mas verificar
-    private final int UDP_PORT = 9876;
+    private static InetAddress server_ip;
+    private static String device_id;
+    //private static InetAddress server_ip = InetAddress.getLoopbackAddress(); //isso supostamente é equivalente ao localhost, mas verificar
+    private static int UDP_PORT = 9876;
+    private static NTSender sender;
+    private static NTReceiver receiver;
+    private static int nr_seq=1;
 
-    public NetTaskAgent(String client_ip, String device_id){
-        this.client_ip = client_ip;
+    public NetTaskAgent(String server_ip, String device_id) throws UnknownHostException {
+        this.server_ip = InetAddress.getByName(server_ip);
         this.device_id = device_id;
     }
 
@@ -24,8 +31,8 @@ public class NetTaskAgent implements Runnable{
         DatagramSocket socket = null;
         try{
             socket = new DatagramSocket();
-            NTSender sender = new NTSender(socket);
-            NTReceiver receiver = new NTReceiver(socket);
+            sender = new NTSender(socket);
+            receiver = new NTReceiver(socket);
 
             int nr_seq = 1;
 
@@ -33,14 +40,16 @@ public class NetTaskAgent implements Runnable{
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
-            NetTaskPacket answer = receiver.receive(1);
+            NetTaskPacket answer = receiver.receive(nr_seq);
+            nr_seq = answer.getNr_seq()+1;
             System.out.println("Confirmation of connection");
 
 
 
             if(answer.getType()==1){ // se há tasks para o cliente fazer
                 System.out.println("Tasks received, starting execution...");
-                this.ScheduleMetricCollect(answer, socket, server_ip);
+                this.ScheduleNTMetricCollect(answer, socket);
+                this.ScheduleAFMetricCollect(answer,socket);
                 // também tem que se fazer aqui a coleta das alertflow conditions
             }
 
@@ -56,7 +65,7 @@ public class NetTaskAgent implements Runnable{
         }
     }
 
-    public void ScheduleMetricCollect(NetTaskPacket packet, DatagramSocket socket, InetAddress server_address){
+    public void ScheduleNTMetricCollect(NetTaskPacket packet, DatagramSocket socket){
         String tasks = packet.getData();
         List<Task> l = Task.StringToTasks(tasks);
 
@@ -65,17 +74,17 @@ public class NetTaskAgent implements Runnable{
                 String[] parts = t.getBandwidth().split(",");
                 // aqui tem que se o iperf periodicamente
                 // a minha dúvida é como é que se faz em relação ao nr de sequencia
-                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), "b", socket);
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 2, socket);
             }
 
             if (!t.getJitter().startsWith("*")) { // fazer o iperf para sacar o jitter
                 String[] parts = t.getJitter().split(",");
-                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), "j", socket);
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 3, socket);
             }
 
             if (!t.getPacketLoss().startsWith("*")){ // fazer o iperf para sacar o jitter
                 String[] parts = t.getPacketLoss().split(",");
-                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), "p", socket);
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 4, socket);
             }
 
             if (!t.getLatency().startsWith("*")){ // fazer o ping para sacar a latency
@@ -93,38 +102,41 @@ public class NetTaskAgent implements Runnable{
 
     }
 
-    public static void schedulerIperf(String tool, String role, String server_address, int duration,String transport_type, int frequency, String type, DatagramSocket socket){
+    public void ScheduleAFMetricCollect(NetTaskPacket packet, DatagramSocket socket){
+
+    }
+
+    public static void schedulerIperf(String tool, String role, String server_address,
+                                      int duration,String transport_type, int frequency, int type, DatagramSocket socket){
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
 
             double result = MetricCollector.runIperf(tool,role,server_address,duration,transport_type,type);
-           // depois tem que se diferenciar se é bandwidth, jitter ou packetLoss
-
-            // perceber como se vão mandar as merdas no pacote (se calhar tem que se alterar o pacote)
-
-            //byte[] metricsData = metricsMessage.getBytes();
-            //DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, server_ip, server_socket);
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String res = Double.toString(result) + ';' + now.format(formatter);
             try {
-                //socket.send(metricsPacket);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }}, 0, frequency, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
+                nr_seq = sender.sendData(res,server_ip,UDP_PORT,nr_seq,device_id,type);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }, 0, frequency, TimeUnit.SECONDS);
 
     }
 
     public static void schedulerPing(String tool, String destination, int count, int frequency,DatagramSocket socket){
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
-            double latency = MetricCollector.runPing(tool,destination,count);
-            // perceber como se vão mandar as merdas no pacote (se calhar tem que se alterar o pacote)
-
-            //byte[] metricsData = metricsMessage.getBytes();
-            //DatagramPacket metricsPacket = new DatagramPacket(metricsData, metricsData.length, server_ip, server_socket);
+            double result = MetricCollector.runPing(tool,destination,count);
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String res = Double.toString(result) + ';' + now.format(formatter);
             try {
-                //socket.send(metricsPacket);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }}, 0, frequency, TimeUnit.SECONDS); // Coletar métricas a cada 30 segundos
+                nr_seq = sender.sendData(res,server_ip,UDP_PORT,nr_seq,device_id,5);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }}, 0, frequency, TimeUnit.SECONDS);
 
     }
 

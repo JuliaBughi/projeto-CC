@@ -1,6 +1,7 @@
 package Task;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +58,12 @@ public class Task {
         return devices.get(0).getLatency();
     }
 
+    static class Tasks{
+        private List<Task> tasks;
+        public List<Task> getTasks() { return tasks; }
+        public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+    }
+
     @Override
     public String toString() {
         return "Task.Task{" +
@@ -68,12 +75,17 @@ public class Task {
 
     public static List<Task> jsonReader(String filepath) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         File jsonFile = new File(filepath);
-        Task[] tasks = objectMapper.readValue(jsonFile,Task[].class);
 
-        List<Task> l = new ArrayList<>(Arrays.asList(tasks));
+        try {
+            Tasks tasks = objectMapper.readValue(jsonFile, Tasks.class);
 
-        return l;
+            return tasks.getTasks();
+        } catch (IOException e) {
+            System.err.println("Error reading JSON file: " + e.getMessage());
+            throw e;
+        }
     }
 
     public static List<Task> getTasksForDevice(String device_id, List<Task> list) {

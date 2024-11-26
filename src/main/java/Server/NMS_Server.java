@@ -15,6 +15,7 @@ public class NMS_Server {
         new Thread(netTaskServer).start();
         new Thread(alertFlowServer).start();
 
+
         // aqui tem de ter outra thread para a interface com o gestor de redes
         // tem que se criar uma maneira de guardar as metricas mandadas pelos clientes para depois serem consultadas pelo gestor
 
