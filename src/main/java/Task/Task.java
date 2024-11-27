@@ -13,6 +13,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+class Tasks{
+    private List<Task> tasks;
+    public List<Task> getTasks() { return tasks; }
+    public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+}
+
 public class Task {
     private String task_id;
     private int frequency;
@@ -56,12 +62,6 @@ public class Task {
 
     public String getLatency(){
         return devices.get(0).getLatency();
-    }
-
-    static class Tasks{
-        private List<Task> tasks;
-        public List<Task> getTasks() { return tasks; }
-        public void setTasks(List<Task> tasks) { this.tasks = tasks; }
     }
 
     @Override

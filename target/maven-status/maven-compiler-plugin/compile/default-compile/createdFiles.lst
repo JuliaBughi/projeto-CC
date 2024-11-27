@@ -1,5 +1,5 @@
 Server/AlertFlowServer.class
-Task/Task$Tasks.class
+Task/Tasks.class
 Packet/NTReceiver.class
 Task/Jitter.class
 Server/ClientHandlerAF.class

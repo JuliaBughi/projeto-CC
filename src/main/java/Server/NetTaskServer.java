@@ -15,6 +15,7 @@ public class NetTaskServer implements Runnable {
 
     public NetTaskServer(String filepath) throws IOException {
         this.taskList = Task.jsonReader(filepath);
+        System.out.println("Json file loaded");
     }
 
     public void addDevice(InetAddress ip, String device_id){
