@@ -1,0 +1,67 @@
+{
+  "tasks": [
+    {
+      "task_id": "task-1",
+      "frequency": 20,
+      "devices": [
+        {
+          "device_id": "r1",
+          "device_metrics": {
+            "cpu_usage": true,
+            "ram_usage": true,
+            "interface_stats": ["eth0", "eth1"]
+          },
+          "link_metrics": {
+            "bandwidth": {
+              "tool": "iperf",
+              "mode": "c",
+              "server_address": "10.0.0.2",
+              "duration": 10,
+              "transport_type": "u",
+              "frequency": 300
+            },
+            "alertflow_conditions": {
+              "cpu_usage": 80.0,
+              "ram_usage": 90.0,
+              "interface_stats": 2000
+            }
+          }
+        }
+      ]
+    },
+    {
+      "task_id": "task-2",
+      "frequency": 30,
+      "devices": [
+        {
+          "device_id": "r2",
+          "device_metrics": {
+            "cpu_usage": true,
+            "ram_usage": false,
+            "interface_stats": ["eth0"]
+          },
+          "link_metrics": {
+            "bandwidth": {
+              "tool": "iperf",
+              "mode": "s",
+              "server_address": "10.0.1.2",
+              "duration": 10,
+              "transport_type": "u",
+              "frequency": 300
+            },
+            "latency": {
+              "tool": "ping",
+              "destination": "10.0.0.2",
+              "packet_count": 5,
+              "frequency": 60
+            },
+            "alertflow_conditions": {
+              "cpu_usage": 75.0,
+              "interface_stats": 1500
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

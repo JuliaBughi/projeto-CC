@@ -35,4 +35,9 @@ public class MetricNT { // perceber no map do server qual deve ser a key (data,t
         return date;
     }
 
+    //perguntar sobre a coleta da ram, cpu,...
+    //perguntar sobre como guardar as metricas
+    //perguntar o que fazer quando uma metrica está fora de padrão e tem que se mandar um alertflow
+    //perguntar se se tem que guardar as metricas do alertflow
+
 }

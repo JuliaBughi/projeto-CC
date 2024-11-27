@@ -15,6 +15,8 @@ public class NMS_Server {
         new Thread(netTaskServer).start();
         new Thread(alertFlowServer).start();
 
+        // criar aqui a memória partilhada para ter as métricas e gerir concorrencia(sinzronized)
+
 
         // aqui tem de ter outra thread para a interface com o gestor de redes
         // tem que se criar uma maneira de guardar as metricas mandadas pelos clientes para depois serem consultadas pelo gestor

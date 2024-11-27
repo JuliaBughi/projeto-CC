@@ -21,7 +21,7 @@ public class NTReceiver {
     }
 
     public NetTaskPacket receive(int expectedSequenceNumber) throws IOException {
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[1024];
         Map<Integer, String> receivedData = new TreeMap<>();
         boolean receiving = true;
         int aux=0;

@@ -12,6 +12,8 @@ public class NMS_Agent {
 
         new Thread(netTaskAgent).start();
         new Thread(alertFlowAgent).start();
+
+        // criar uma queue partilhada ou algo do genero para o alertflow ver se tem de mandar alerta
     }
 
 }

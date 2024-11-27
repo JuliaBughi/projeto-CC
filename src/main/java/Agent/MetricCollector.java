@@ -178,9 +178,10 @@ public class MetricCollector {
     //Este dá a percentagem de ram atual com o '%', depois tem de se tirar isso
     //free -m | awk '/Mem:/ {printf "%.2f%%", $3/$2 * 100.0}'
 
-    //não faço a mínima de como se faz o interface stats
+    //interfaces - ifconfig + nome da interface (ver os pacotes enviados)
 
-    //não percebi bem como se fazem os outros depois - é baseados nos comandos do jitter e packet loss?
+    //packet loss e jitter usar os valores das tasks
+
 
 
 
