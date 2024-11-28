@@ -48,8 +48,8 @@ public class NTSender {
             System.out.println("chunk "+i+ ": " + chunk);
             boolean isLast = (i + chunkSize >= data.length());
             if(isLast) last=1;
-
-            NetTaskPacket packet = new NetTaskPacket(nr_seq,deviceId,0,last,type,data);
+            //alterei para ele enviar o chunk em vez do data todo
+            NetTaskPacket packet = new NetTaskPacket(nr_seq,deviceId,0,last,type,chunk);
             String packetStr = NetTaskPacket.NetTaskPacketToString(packet);
 
             if (!sendWithRetry(packetStr, nr_seq)) {
@@ -57,7 +57,8 @@ public class NTSender {
             }
             nr_seq++;
         }
-        return nr_seq+1; // dá return do novo numero de sequencia a ser usado no procimo pacote
+        return nr_seq+1; // dá return do novo numero de sequencia a ser usado no proximo pacote
+        //retirei o incremento do 1 porque no fim do for ele já aumenta o nr de seq para o prox
     }
 
     private boolean sendWithRetry(String packetStr, int expectedSequence) throws IOException {

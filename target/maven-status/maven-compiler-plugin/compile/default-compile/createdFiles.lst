@@ -1,7 +1,7 @@
-Server/AlertFlowServer.class
 Task/Tasks.class
-Packet/NTReceiver.class
+Server/AlertFlowServer.class
 Task/Jitter.class
+Packet/NTReceiver.class
 Server/ClientHandlerAF.class
 Packet/NetTaskPacket.class
 Agent/AlertFlowAgent.class
@@ -20,5 +20,5 @@ Task/LinkMetrics.class
 Server/MetricNT.class
 Server/NMS_Server.class
 Packet/NTSender.class
-Agent/MetricCollector.class
 Task/PacketLoss.class
+Agent/MetricCollector.class

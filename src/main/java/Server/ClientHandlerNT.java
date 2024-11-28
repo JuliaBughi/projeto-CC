@@ -46,21 +46,26 @@ public class ClientHandlerNT implements Runnable {
 
             if(tasksForDevice.isEmpty()){ // fechar a ligação se não há tasks para mandar
                 sender.sendData("",clientAddress,clientPort,nr_seq, device_id, -1);
-
+                System.out.println("Servidor: Enviou pacote vazio com sequência " + nr_seq + " para " + device_id);
                 System.out.println("No tasks to send to client "+ device_id);
                 System.out.println("Closing connection...");
             }
             else{
                 String tasks = Task.TasksToString(tasksForDevice,device_id);
-                System.out.println(tasks);
+                System.out.println("Servidor: Tarefas para envio:\n" + tasks);
+               // System.out.println(tasks);
                 nr_seq = sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
-                System.out.println(nr_seq);
-                System.out.println("Tasks sent to client "+ device_id);
+                System.out.println("Servidor: Pacote de tarefas enviado com sequência " + nr_seq + " para " + device_id);
+                //System.out.println(nr_seq);
+                //System.out.println("Tasks sent to client "+ device_id);
 
                 //ciclo para coleta das métricas
                 while(true){
-                    NetTaskPacket packet = receiver.receive(nr_seq); //pacotes com metricas
-                    nr_seq = packet.getNr_seq()+1;
+                    System.out.println("Servidor: Aguardando pacotes de métricas...");
+                    NetTaskPacket packet = receiver.receive(nr_seq);
+                    System.out.println("Servidor: Pacote recebido com sequência " + packet.getNr_seq());
+                    nr_seq = packet.getNr_seq() + 1;
+                    System.out.println("Servidor: Número de sequência atualizado para " + nr_seq);
                     // perceber como se vão guardar as metricas
 
                 }

@@ -34,20 +34,24 @@ public class NetTaskAgent implements Runnable{
             sender = new NTSender(socket);
             receiver = new NTReceiver(socket);
 
-            int nr_seq = 1;
+
 
             nr_seq = sender.sendData("",server_ip,UDP_PORT,nr_seq,device_id,0);
+            System.out.println("Cliente: Enviou pacote de registo com seq = " + nr_seq);
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
             NetTaskPacket answer = receiver.receive(nr_seq);
+            System.out.println("Cliente: Pacote recebido com sequência " + answer.getNr_seq());
             nr_seq = answer.getNr_seq()+1;
-            System.out.println("Confirmation of connection");
+            System.out.println("Cliente: Conexão confirmada com o servidor. Sequência atualizada para " + nr_seq);
+            //System.out.println("Confirmation of connection");
 
 
 
             if(answer.getType()==1){ // se há tasks para o cliente fazer
-                System.out.println("Tasks received, starting execution...");
+                //System.out.println("Tasks received, starting execution...");
+                System.out.println("Cliente: Tarefas recebidas:\n" + answer.getData());
                 String tasks = answer.getData();
                 List<Task> l = Task.StringToTasks(tasks);
                 this.ScheduleNTMetricCollect(answer, socket);
