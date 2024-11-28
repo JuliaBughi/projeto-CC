@@ -133,6 +133,9 @@ public class Task {
     private static Task StringToTask(String taskString){
         String[] parts = taskString.split(";");
         if (parts.length < 3) return null;
+        System.out.println("Nr of parts: "+parts.length);
+        for(String s : parts)
+            System.out.println(s);
 
         Task task = new Task();
         task.task_id = parts[0];
@@ -208,11 +211,11 @@ class Device {
 
         String deviceMetrics = DeviceMetrics.DeviceMetricsToString(device.device_metrics);
         String linkMetrics = LinkMetrics.LinkMetricsToString(device.link_metrics);
-        return String.format("%s;%s;%s",device.device_id, deviceMetrics, linkMetrics);
+        return String.format("%s-%s-%s",device.device_id, deviceMetrics, linkMetrics);
     }
 
     public static Device StringToDevice(String deviceString) {
-        String[] parts = deviceString.split(";");
+        String[] parts = deviceString.split("-");
         //if (parts.length < 3) return null;
 
         Device device = new Device();
@@ -263,7 +266,7 @@ class DeviceMetrics {
     }
 
     public static String DeviceMetricsToString(DeviceMetrics metrics) {
-        String interfaceStats = String.join("|", metrics.interface_stats);
+        String interfaceStats = String.join("%", metrics.interface_stats);
         return String.format("%b,%b,%s",
                 metrics.cpu_usage, metrics.ram_usage, interfaceStats);
     }
@@ -275,7 +278,7 @@ class DeviceMetrics {
         DeviceMetrics metrics = new DeviceMetrics();
         metrics.cpu_usage = Boolean.parseBoolean(parts[0]);
         metrics.ram_usage = Boolean.parseBoolean(parts[1]);
-        metrics.interface_stats = Arrays.asList(parts[2].split("\\|"));
+        metrics.interface_stats = Arrays.asList(parts[2].split("%"));
 
         return metrics;
     }
@@ -362,11 +365,11 @@ class LinkMetrics {
         String packetLoss = PacketLoss.PacketLossToString(metrics.packet_loss);
         String latency = Latency.LatencyToString(metrics.latency);
         String alertFlow = AlertFlowConditions.AlertFlowConditionsToString(metrics.alertflow_conditions);
-        return String.format("%s;%s;%s;%s;%s", bandwidth, jitter, packetLoss, latency, alertFlow);
+        return String.format("%s+%s+%s+%s+%s", bandwidth, jitter, packetLoss, latency, alertFlow);
     }
 
     public static LinkMetrics StringToLinkMetrics(String linkMetricsString) {
-        String[] parts = linkMetricsString.split(";");
+        String[] parts = linkMetricsString.split("\\+");
         if (parts.length < 5) return null;
 
         LinkMetrics linkMetrics = new LinkMetrics();

@@ -52,9 +52,10 @@ public class ClientHandlerNT implements Runnable {
             }
             else{
                 String tasks = Task.TasksToString(tasksForDevice,device_id);
-                sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
+                System.out.println(tasks);
+                nr_seq = sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
+                System.out.println(nr_seq);
                 System.out.println("Tasks sent to client "+ device_id);
-                nr_seq++;
 
                 //ciclo para coleta das métricas
                 while(true){

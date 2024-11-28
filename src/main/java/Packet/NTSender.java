@@ -45,6 +45,7 @@ public class NTSender {
 
         for (int i = 0; i < data.length(); i += chunkSize) {
             String chunk = data.substring(i, Math.min(data.length(), i + chunkSize));
+            System.out.println("chunk "+i+ ": " + chunk);
             boolean isLast = (i + chunkSize >= data.length());
             if(isLast) last=1;
 

@@ -37,13 +37,12 @@ public class NetTaskAgent implements Runnable{
             int nr_seq = 1;
 
             nr_seq = sender.sendData("",server_ip,UDP_PORT,nr_seq,device_id,0);
-            System.out.println(nr_seq);
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
-            System.out.println("Cliente vai abrir o receiver");
             NetTaskPacket answer = receiver.receive(nr_seq);
             nr_seq = answer.getNr_seq()+1;
+            System.out.println(nr_seq);
             System.out.println("Confirmation of connection");
 
 
@@ -51,6 +50,7 @@ public class NetTaskAgent implements Runnable{
             if(answer.getType()==1){ // se há tasks para o cliente fazer
                 System.out.println("Tasks received, starting execution...");
                 String tasks = answer.getData();
+                System.out.println(tasks + "ola");
                 List<Task> l = Task.StringToTasks(tasks);
                 for(Task t: l)
                     System.out.println(t.toString());

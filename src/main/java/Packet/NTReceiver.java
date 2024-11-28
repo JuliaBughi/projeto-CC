@@ -26,16 +26,20 @@ public class NTReceiver {
         boolean receiving = true;
         int aux=0;
         NetTaskPacket output = new NetTaskPacket();
+        System.out.print("Estou dentro do receiver");
 
         while (receiving) {
             DatagramPacket dpacket = new DatagramPacket(buffer, buffer.length);
             socket.receive(dpacket);
             this.senderAddress = dpacket.getAddress();
             this.senderPort = dpacket.getPort();
+            System.out.print("Recebi 1 pacote");
 
             String packetStr = new String(dpacket.getData(), 0, dpacket.getLength(),
                     StandardCharsets.UTF_8);
+            System.out.println(packetStr);
             NetTaskPacket packet = NetTaskPacket.StringToNetTaskPacket(packetStr);
+            System.out.println(packet.getData());
 
             if(aux==0){
                 output.setDevice_id(packet.getDevice_id());
