@@ -42,7 +42,6 @@ public class NetTaskAgent implements Runnable{
 
             NetTaskPacket answer = receiver.receive(nr_seq);
             nr_seq = answer.getNr_seq()+1;
-            System.out.println(nr_seq);
             System.out.println("Confirmation of connection");
 
 
@@ -50,10 +49,7 @@ public class NetTaskAgent implements Runnable{
             if(answer.getType()==1){ // se há tasks para o cliente fazer
                 System.out.println("Tasks received, starting execution...");
                 String tasks = answer.getData();
-                System.out.println(tasks + "ola");
                 List<Task> l = Task.StringToTasks(tasks);
-                for(Task t: l)
-                    System.out.println(t.toString());
                 this.ScheduleNTMetricCollect(answer, socket);
                 this.ScheduleAFMetricCollect(answer,socket);
                 // também tem que se fazer aqui a coleta das alertflow conditions

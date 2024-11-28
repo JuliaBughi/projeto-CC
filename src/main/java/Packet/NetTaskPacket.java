@@ -90,11 +90,11 @@ public class NetTaskPacket {
 
     public static String NetTaskPacketToString(NetTaskPacket packet){
 
-        return String.format("%d,%s,%d,%d,%d,%s",packet.nr_seq,packet.device_id,packet.ack,packet.isLast,packet.type,packet.data);
+        return String.format("%d/%s/%d/%d/%d/%s",packet.nr_seq,packet.device_id,packet.ack,packet.isLast,packet.type,packet.data);
     }
 
     public static NetTaskPacket StringToNetTaskPacket(String message){
-        String[] parts = message.split(",");
+        String[] parts = message.split("/");
         NetTaskPacket packet = new NetTaskPacket();
 
         packet.nr_seq = Integer.parseInt(parts[0]);
