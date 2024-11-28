@@ -34,7 +34,6 @@ public class NetTaskServer implements Runnable {
 
             while (true) {
                 NetTaskPacket helloMessage = receiver.receive(1);
-
                 System.out.println("Client " + helloMessage.getDevice_id() + " connected");
 
                 new Thread(new ClientHandlerNT(helloMessage, this, receiver.getSenderAddress(), receiver.getSenderPort())).start();

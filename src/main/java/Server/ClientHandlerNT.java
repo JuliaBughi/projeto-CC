@@ -37,8 +37,12 @@ public class ClientHandlerNT implements Runnable {
 
             //podemos assumir que é logo a primeira ligação
             this.server.addDevice(clientAddress, helloPacket.getDevice_id()); //aqui não é preciso gerir concorrência?
-
+            System.out.println("Received hello packet from "+device_id);
             List<Task> tasksForDevice = Task.getTasksForDevice(device_id, server.getTaskList());
+            System.out.println(tasksForDevice.size());
+            for(Task t: tasksForDevice)
+                System.out.println(t.toString());
+
 
             if(tasksForDevice.isEmpty()){ // fechar a ligação se não há tasks para mandar
                 sender.sendData("",clientAddress,clientPort,nr_seq, device_id, -1);
@@ -49,6 +53,7 @@ public class ClientHandlerNT implements Runnable {
             else{
                 String tasks = Task.TasksToString(tasksForDevice,device_id);
                 sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
+                System.out.println("Tasks sent to client "+ device_id);
                 nr_seq++;
 
                 //ciclo para coleta das métricas

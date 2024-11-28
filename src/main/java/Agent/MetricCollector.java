@@ -172,11 +172,43 @@ public class MetricCollector {
         return averageLatency;
     }
 
-    // Este dá print da percentagem atual do uso de CPU
-    // top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}'
+    public static double runCpuUsage() {
+        String result = "";
+        try {
+            ProcessBuilder builder = new ProcessBuilder("bash", "-c", "top -bn1 | grep \"Cpu(s)\" | awk '{print $2 + $4}'");
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result=line;
+            }
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Double.parseDouble(result);
 
-    //Este dá a percentagem de ram atual com o '%', depois tem de se tirar isso
-    //free -m | awk '/Mem:/ {printf "%.2f%%", $3/$2 * 100.0}'
+    }
+
+    public static double runRamUsage() {
+        String result = "";
+        try {
+            ProcessBuilder builder = new ProcessBuilder("bash", "-c", "free -m | awk '/Mem:/ {printf \"%.2f\", $3/$2 * 100.0}'");
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result = line;
+            }
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Double.parseDouble(result);
+
+    }
 
     //interfaces - ifconfig + nome da interface (ver os pacotes enviados)
 

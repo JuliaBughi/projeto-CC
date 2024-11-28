@@ -66,7 +66,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task.Task{" +
+        return "Task{" +
                 "task_id='" + task_id + '\'' +
                 ", frequency=" + frequency +
                 ", devices=" + devices +
@@ -120,7 +120,10 @@ public class Task {
 
     public static String TaskToString(Task task,String device_id) {
 
-        Device d = (Device) task.devices.stream().filter(device -> device != null && device.getDevice_id().equals(device_id));
+        Device d = task.devices.stream()
+                .filter(device -> device != null && device.getDevice_id().equals(device_id))
+                .findFirst()
+                .orElse(null);
 
         String device = Device.DeviceToString(d);
 
@@ -194,7 +197,7 @@ class Device {
 
     @Override
     public String toString() {
-        return "Task.Device{" +
+        return "Device{" +
                 "device_id='" + device_id + '\'' +
                 ", device_metrics=" + device_metrics +
                 ", link_metrics=" + link_metrics +
@@ -252,7 +255,7 @@ class DeviceMetrics {
 
     @Override
     public String toString() {
-        return "Task.DeviceMetrics{" +
+        return "DeviceMetrics{" +
                 "cpu_usage=" + cpu_usage +
                 ", ram_usage=" + ram_usage +
                 ", interface_stats=" + interface_stats +
@@ -344,7 +347,7 @@ class LinkMetrics {
 
     @Override
     public String toString() {
-        return "Task.LinkMetrics{" +
+        return "LinkMetrics{" +
                 "bandwidth=" + bandwidth +
                 ", jitter=" + jitter +
                 ", packet_loss=" + packet_loss +
@@ -435,7 +438,7 @@ class Bandwidth {
 
     @Override
     public String toString() {
-        return "Task.Bandwidth{" +
+        return "Bandwidth{" +
                 "tool='" + tool + '\'' +
                 ", role='" + role + '\'' +
                 ", server_address='" + server_address + '\'' +
@@ -470,11 +473,66 @@ class Bandwidth {
     }
 }
 
-class Jitter extends Bandwidth{
+class Jitter {
+
+    String tool;
+    String role;
+    String server_address;
+    int duration;
+    String transport_type;
+    int frequency;
+
+    public String getTool() {
+        return tool;
+    }
+
+    public void setTool(String tool) {
+        this.tool = tool;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getServer_address() {
+        return server_address;
+    }
+
+    public void setServer_address(String server_address) {
+        this.server_address = server_address;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public String getTransport_type() {
+        return transport_type;
+    }
+
+    public void setTransport_type(String transport_type) {
+        this.transport_type = transport_type;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
+    }
 
     @Override
     public String toString() {
-        return "Task.Jitter{" +
+        return "Jitter{" +
                 "tool='" + tool + '\'' +
                 ", role='" + role + '\'' +
                 ", server_address='" + server_address + '\'' +
@@ -484,19 +542,90 @@ class Jitter extends Bandwidth{
                 '}';
     }
     public static String JitterToString(Jitter jitter) {
-        return BandwidthToString(jitter);
+        return String.format("%s,%s,%s,%d,%s,%d",
+                jitter.tool, jitter.role, jitter.server_address,
+                jitter.duration, jitter.transport_type, jitter.frequency);
     }
 
     public static Jitter StringToJitter(String jitterString) {
-        return (Jitter) StringToBandwidth(jitterString);
+        String[] parts = jitterString.split(",");
+        if (parts.length < 6) return null;
+
+        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
+            return null;
+
+        Jitter jitter = new Jitter();
+        jitter.tool = parts[0];
+        jitter.role = parts[1];
+        jitter.server_address = parts[2];
+        jitter.duration = Integer.parseInt(parts[3]);
+        jitter.transport_type = parts[4];
+        jitter.frequency = Integer.parseInt(parts[5]);
+
+        return jitter;
     }
 }
 
-class PacketLoss extends Bandwidth{
+class PacketLoss {
+
+    String tool;
+    String role;
+    String server_address;
+    int duration;
+    String transport_type;
+    int frequency;
+
+    public String getTool() {
+        return tool;
+    }
+
+    public void setTool(String tool) {
+        this.tool = tool;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getServer_address() {
+        return server_address;
+    }
+
+    public void setServer_address(String server_address) {
+        this.server_address = server_address;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public String getTransport_type() {
+        return transport_type;
+    }
+
+    public void setTransport_type(String transport_type) {
+        this.transport_type = transport_type;
+    }
+
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
+    }
 
     @Override
     public String toString() {
-        return "Task.PacketLoss{" +
+        return "PacketLoss{" +
                 "tool='" + tool + '\'' +
                 ", role='" + role + '\'' +
                 ", server_address='" + server_address + '\'' +
@@ -506,12 +635,28 @@ class PacketLoss extends Bandwidth{
                 '}';
     }
 
-    public static String PacketLossToString(PacketLoss packetLoss) {
-        return BandwidthToString(packetLoss);
+    public static String PacketLossToString(PacketLoss packetloss) {
+        return String.format("%s,%s,%s,%d,%s,%d",
+                packetloss.tool, packetloss.role, packetloss.server_address,
+                packetloss.duration, packetloss.transport_type, packetloss.frequency);
     }
 
-    public static PacketLoss StringToPacketLoss(String packetLossString) {
-        return (PacketLoss) StringToBandwidth(packetLossString);
+    public static PacketLoss StringToPacketLoss(String packerLossString) {
+        String[] parts = packerLossString.split(",");
+        if (parts.length < 6) return null;
+
+        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
+            return null;
+
+        PacketLoss packetloss = new PacketLoss();
+        packetloss.tool = parts[0];
+        packetloss.role = parts[1];
+        packetloss.server_address = parts[2];
+        packetloss.duration = Integer.parseInt(parts[3]);
+        packetloss.transport_type = parts[4];
+        packetloss.frequency = Integer.parseInt(parts[5]);
+
+        return packetloss;
     }
 }
 
@@ -555,7 +700,7 @@ class Latency {
 
     @Override
     public String toString() {
-        return "Task.Latency{" +
+        return "Latency{" +
                 "tool='" + tool + '\'' +
                 ", destination='" + destination + '\'' +
                 ", count='" + count + '\'' +
@@ -636,7 +781,7 @@ class AlertFlowConditions { // se no Json alguma metrica for -1 então é para i
 
     @Override
     public String toString() {
-        return "Task.AlertFlowConditions{" +
+        return "AlertFlowConditions{" +
                 "cpu_usage=" + cpu_usage +
                 ", ram_usage=" + ram_usage +
                 ", interface_stats=" + interface_stats +

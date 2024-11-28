@@ -89,9 +89,6 @@ public class NetTaskPacket {
     }
 
     public static String NetTaskPacketToString(NetTaskPacket packet){
-        if(packet.ack==1 && packet.nr_seq>1){ // se for ack e não for o primeiro pacote, não precisa de ter device_id nem tasks
-            return String.format("%d,%d",packet.nr_seq,packet.ack);
-        }
 
         return String.format("%d,%s,%d,%d,%d,%s",packet.nr_seq,packet.device_id,packet.ack,packet.isLast,packet.type,packet.data);
     }
@@ -100,17 +97,15 @@ public class NetTaskPacket {
         String[] parts = message.split(",");
         NetTaskPacket packet = new NetTaskPacket();
 
-        if (parts.length == 2){
-            packet.nr_seq = Integer.parseInt(parts[0]);
-            packet.ack = Integer.parseInt(parts[1]);
-        }
-
         packet.nr_seq = Integer.parseInt(parts[0]);
         packet.device_id = parts[1];
         packet.ack = Integer.parseInt(parts[2]);
         packet.isLast = Integer.parseInt(parts[3]);
         packet.type = Integer.parseInt(parts[4]);
-        packet.data = parts[5];
+        if(packet.type==0 || packet.ack==1)
+            packet.data="";
+        else
+            packet.data = parts[5];
 
         return packet;
     }

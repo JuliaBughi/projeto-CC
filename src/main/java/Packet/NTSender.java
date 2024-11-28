@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class NTSender {
     private DatagramSocket socket;
@@ -11,7 +12,7 @@ public class NTSender {
     private int receiverPort;
     private String deviceId;
     private int type;
-    private static final int TIMEOUT = 1000; // milliseconds
+    private static final int TIMEOUT = 5000; // milliseconds
     private static final int MAX_RETRIES = 5;
 
     public NTSender(DatagramSocket socket) throws SocketException {
@@ -30,6 +31,18 @@ public class NTSender {
         int chunkSize = 1024;
         int last=0;
 
+        if (data.isEmpty()) {
+            NetTaskPacket packet = new NetTaskPacket(nr_seq, deviceId, 0, 1, type, "");
+
+            String packetStr = NetTaskPacket.NetTaskPacketToString(packet);
+
+            if (!sendWithRetry(packetStr, nr_seq)) {
+                throw new IOException("Failed to send empty packet after maximum retries");
+            }
+
+            return nr_seq + 1;
+        }
+
         for (int i = 0; i < data.length(); i += chunkSize) {
             String chunk = data.substring(i, Math.min(data.length(), i + chunkSize));
             boolean isLast = (i + chunkSize >= data.length());
@@ -41,10 +54,8 @@ public class NTSender {
             if (!sendWithRetry(packetStr, nr_seq)) {
                 throw new IOException("Failed to send packet after maximum retries");
             }
-
             nr_seq++;
         }
-
         return nr_seq+1; // dá return do novo numero de sequencia a ser usado no procimo pacote
     }
 

@@ -14,7 +14,7 @@
           "link_metrics": {
             "bandwidth": {
               "tool": "iperf",
-              "mode": "c",
+              "role": "c",
               "server_address": "10.0.0.2",
               "duration": 10,
               "transport_type": "u",
@@ -43,16 +43,32 @@
           "link_metrics": {
             "bandwidth": {
               "tool": "iperf",
-              "mode": "s",
+              "role": "s",
               "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
               "frequency": 300
             },
+            "jitter": {
+              "tool": "*",
+              "role": "*",
+              "server_address": "*",
+              "duration": 0,
+              "transport_type": "*",
+              "frequency": 0
+            },
+            "packet_loss": {
+              "tool": "*",
+              "role": "*",
+              "server_address": "*",
+              "duration": 0,
+              "transport_type": "*",
+              "frequency": 0
+            },
             "latency": {
               "tool": "ping",
               "destination": "10.0.0.2",
-              "packet_count": 5,
+              "count": 5,
               "frequency": 60
             },
             "alertflow_conditions": {
