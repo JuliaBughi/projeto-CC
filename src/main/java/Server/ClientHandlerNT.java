@@ -14,8 +14,9 @@ public class ClientHandlerNT implements Runnable {
         private final InetAddress clientAddress;
         private final int clientPort;
         private String device_id;
-
         private int nr_seq=2;
+        private NTSender sender;
+        private NTReceiver receiver;
 
 
     public ClientHandlerNT(NetTaskPacket helloPacket, NetTaskServer server, InetAddress clientAddress, int clientPort) {
@@ -30,8 +31,8 @@ public class ClientHandlerNT implements Runnable {
         DatagramSocket responseSocket = null;
         try {
             responseSocket = new DatagramSocket();
-            NTSender sender = new NTSender(responseSocket);
-            NTReceiver receiver = new NTReceiver(responseSocket);
+            sender = new NTSender(responseSocket);
+            receiver = new NTReceiver(responseSocket);
 
             device_id = helloPacket.getDevice_id();
 
@@ -39,23 +40,18 @@ public class ClientHandlerNT implements Runnable {
             this.server.addDevice(clientAddress, helloPacket.getDevice_id()); //aqui não é preciso gerir concorrência?
             System.out.println("Received hello packet from "+device_id);
             List<Task> tasksForDevice = Task.getTasksForDevice(device_id, server.getTaskList());
-            System.out.println(tasksForDevice.size());
-            for(Task t: tasksForDevice)
-                System.out.println(t.toString());
 
 
             if(tasksForDevice.isEmpty()){ // fechar a ligação se não há tasks para mandar
                 sender.sendData("",clientAddress,clientPort,nr_seq, device_id, -1);
-                System.out.println("Servidor: Enviou pacote vazio com sequência " + nr_seq + " para " + device_id);
+                System.out.println("Servidor: Enviou pacote vazio com sequência " + (nr_seq-1) + " para " + device_id);
                 System.out.println("No tasks to send to client "+ device_id);
                 System.out.println("Closing connection...");
             }
             else{
                 String tasks = Task.TasksToString(tasksForDevice,device_id);
-                System.out.println("Servidor: Tarefas para envio:\n" + tasks);
-               // System.out.println(tasks);
                 nr_seq = sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
-                System.out.println("Servidor: Pacote de tarefas enviado com sequência " + nr_seq + " para " + device_id);
+                System.out.println("Servidor: Pacote de tarefas enviado com sequência " + (nr_seq-1) + " para " + device_id);
                 //System.out.println(nr_seq);
                 //System.out.println("Tasks sent to client "+ device_id);
 

@@ -67,7 +67,7 @@ public class NTReceiver {
             }
         }
 
-        output.setNr_seq(expectedSequenceNumber-2);
+        output.setNr_seq(expectedSequenceNumber-1);
 
         // aqui ele junta todos os pedaços de dados
         StringBuilder finalData = new StringBuilder();

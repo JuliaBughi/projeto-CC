@@ -133,9 +133,6 @@ public class Task {
     private static Task StringToTask(String taskString){
         String[] parts = taskString.split(";");
         if (parts.length < 3) return null;
-        System.out.println("Nr of parts: "+parts.length);
-        for(String s : parts)
-            System.out.println(s);
 
         Task task = new Task();
         task.task_id = parts[0];
@@ -461,9 +458,6 @@ class Bandwidth {
         String[] parts = bandwidthString.split(",");
         if (parts.length < 6) return null;
 
-        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
-            return null;
-
         Bandwidth bandwidth = new Bandwidth();
         bandwidth.tool = parts[0];
         bandwidth.role = parts[1];
@@ -553,9 +547,6 @@ class Jitter {
     public static Jitter StringToJitter(String jitterString) {
         String[] parts = jitterString.split(",");
         if (parts.length < 6) return null;
-
-        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
-            return null;
 
         Jitter jitter = new Jitter();
         jitter.tool = parts[0];
@@ -648,9 +639,6 @@ class PacketLoss {
         String[] parts = packerLossString.split(",");
         if (parts.length < 6) return null;
 
-        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
-            return null;
-
         PacketLoss packetloss = new PacketLoss();
         packetloss.tool = parts[0];
         packetloss.role = parts[1];
@@ -720,9 +708,6 @@ class Latency {
     public static Latency StringToLatency(String latencyString) {
         String[] parts = latencyString.split(",");
         if (parts.length < 4) return null;
-
-        if(parts[0].equals("*")) // se no Json as metricas forem * (string) ou -1 (int) é para ignorar
-            return null;
 
         Latency latency = new Latency();
         latency.tool = parts[0];

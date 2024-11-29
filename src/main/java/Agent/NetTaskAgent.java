@@ -37,7 +37,7 @@ public class NetTaskAgent implements Runnable{
 
 
             nr_seq = sender.sendData("",server_ip,UDP_PORT,nr_seq,device_id,0);
-            System.out.println("Cliente: Enviou pacote de registo com seq = " + nr_seq);
+            System.out.println("Cliente: Enviou pacote de registo com seq = " + (nr_seq-1));
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
@@ -48,12 +48,8 @@ public class NetTaskAgent implements Runnable{
             //System.out.println("Confirmation of connection");
 
 
-
             if(answer.getType()==1){ // se há tasks para o cliente fazer
-                //System.out.println("Tasks received, starting execution...");
-                System.out.println("Cliente: Tarefas recebidas:\n" + answer.getData());
-                String tasks = answer.getData();
-                List<Task> l = Task.StringToTasks(tasks);
+                System.out.println("Tasks received, starting execution...");
                 this.ScheduleNTMetricCollect(answer, socket);
                 this.ScheduleAFMetricCollect(answer,socket);
                 // também tem que se fazer aqui a coleta das alertflow conditions
@@ -64,16 +60,19 @@ public class NetTaskAgent implements Runnable{
         } catch (Exception e){
             e.printStackTrace();
         } finally{
+            /*
             if(socket != null && !socket.isClosed()){
                 System.out.println("No tasks received, closing connection...");
                 socket.close();
             }
+            */
         }
     }
 
     public void ScheduleNTMetricCollect(NetTaskPacket packet, DatagramSocket socket){
         String tasks = packet.getData();
         List<Task> l = Task.StringToTasks(tasks);
+        System.out.println("Dentro do schedule metric collector");
 
         for(Task t : l) {
             if (!t.getBandwidth().startsWith("*")) { // quer dizer que tem de fazer a bandwidth

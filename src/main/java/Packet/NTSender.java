@@ -12,7 +12,7 @@ public class NTSender {
     private int receiverPort;
     private String deviceId;
     private int type;
-    private static final int TIMEOUT = 5000; // milliseconds
+    private static final int TIMEOUT = 2000; // milliseconds
     private static final int MAX_RETRIES = 5;
 
     public NTSender(DatagramSocket socket) throws SocketException {
@@ -45,7 +45,6 @@ public class NTSender {
 
         for (int i = 0; i < data.length(); i += chunkSize) {
             String chunk = data.substring(i, Math.min(data.length(), i + chunkSize));
-            System.out.println("chunk "+i+ ": " + chunk);
             boolean isLast = (i + chunkSize >= data.length());
             if(isLast) last=1;
             //alterei para ele enviar o chunk em vez do data todo
@@ -57,7 +56,7 @@ public class NTSender {
             }
             nr_seq++;
         }
-        return nr_seq+1; // dá return do novo numero de sequencia a ser usado no proximo pacote
+        return nr_seq; // dá return do novo numero de sequencia a ser usado no proximo pacote
         //retirei o incremento do 1 porque no fim do for ele já aumenta o nr de seq para o prox
     }
 

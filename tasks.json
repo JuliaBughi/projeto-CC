@@ -88,10 +88,10 @@
               "frequency": 300
             },
             "latency": {
-              "tool": "ping",
-              "destination": "10.0.0.2",
-              "count": 5,
-              "frequency": 60
+              "tool": "*",
+              "destination": "*",
+              "count": 0,
+              "frequency": 0
             },
             "alertflow_conditions": {
               "cpu_usage": 75.0,
