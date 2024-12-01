@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.net.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -18,15 +22,17 @@ import Task.*;
 
 public class NetTaskAgent implements Runnable{
     private static InetAddress server_ip;
-
     private static InetAddress handler_ip;
-
     private static String device_id;
     //private static InetAddress server_ip = InetAddress.getLoopbackAddress(); //isso supostamente é equivalente ao localhost, mas verificar
     private static int SERVER_PORT = 9876;
     private static int handler_port;
     private static NTSender sender;
     private static NTReceiver receiver;
+    private static BlockingQueue<String> AFQueue;
+    private static double lastJitter = 0;
+    private static double lastPacketLoss = 0;
+    private static Map<String, Integer> interface_map = new HashMap<>();
 
     private static AtomicInteger nr_seq = new AtomicInteger(1); // não está a funcionar
 
@@ -42,9 +48,10 @@ public class NetTaskAgent implements Runnable{
         nr_seq.set(nr+1);
     }
 
-    public NetTaskAgent(String server_ip, String device_id) throws UnknownHostException {
+    public NetTaskAgent(String server_ip, String device_id, BlockingQueue<String> queue) throws UnknownHostException {
         this.server_ip = InetAddress.getByName(server_ip);
         this.device_id = device_id;
+        this.AFQueue = queue;
     }
 
     public void run(){
@@ -71,7 +78,6 @@ public class NetTaskAgent implements Runnable{
                 System.out.println("Tasks received, starting execution...");
                 this.ScheduleNTMetricCollect(answer);
                 this.ScheduleAFMetricCollect(answer);
-                // também tem que se fazer aqui a coleta das alertflow conditions
 
                 while (true) {
                     Thread.sleep(1000); // para o obrigar a ficar aqui e não avançar
@@ -126,7 +132,59 @@ public class NetTaskAgent implements Runnable{
     }
 
     public void ScheduleAFMetricCollect(NetTaskPacket packet){
+        String tasks = packet.getData();
+        List<Task> l = Task.StringToTasks(tasks);
 
+        for(Task t : l){
+            String aux = t.getInterface_stats();
+            String[] interfaces = aux.split(",");
+            for(String s : interfaces){
+                String key = t.getTask_id() + s;
+                interface_map.put(key, 0);
+            }
+            aux = t.getAlertFlowConditionsString();
+            String[] ls = aux.split(",");
+            schedulerAFMetrics(t.getTask_id(), interfaces, t.getFrequency(), Integer.parseInt(ls[0]), Integer.parseInt(ls[1]),
+                    Integer.parseInt(ls[2]), Integer.parseInt(ls[3]), Integer.parseInt(ls[4]));
+        }
+    }
+
+    public static void schedulerAFMetrics(String task_id, String[] interfaces, int frequency, int cpuU,
+                                          int ramU, int isU, int packetU, int jitterU){
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            try{
+                double cpu = MetricCollector.runCpuUsage();
+                if(cpu > cpuU){
+                    AFQueue.put("client "+ device_id + " exceeded cpu usage: actual-> "+cpu+"%  limit-> "+cpuU+"%");
+                }
+                double ram = MetricCollector.runRamUsage();
+                if(ram > ramU){
+                    AFQueue.put("client "+ device_id + " exceeded ram usage: actual-> "+ram+"%  limit-> "+ramU+"%");
+                }
+                for(String i : interfaces){
+                    int count = MetricCollector.runIfconfig(i);
+                    String key = task_id + i;
+                    int istat = (count - interface_map.get(key)) / frequency;
+                    if(istat > isU){ // subtrair o count antigo ao count atual e dividir pela frequencia para ter pacotes por segundo
+                        AFQueue.put("client "+ device_id + " exceeded interface stats on interface " + i + ": actual-> "+
+                                istat +" pps  limit-> "+ramU+" pps");
+                    }
+                    interface_map.put(key,count); // atualizar o count para o atual
+                }
+                if(lastJitter > jitterU){
+                    AFQueue.put("client "+ device_id + " exceeded jitter: actual-> "+
+                            lastJitter+"ms  limit-> "+jitterU+"ms");
+                }
+                if(lastPacketLoss > packetU){
+                    AFQueue.put("client "+ device_id + " exceeded packet loss: actual-> "+
+                            lastPacketLoss+"%  limit-> "+packetU+"%");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+        }, 0, frequency, TimeUnit.SECONDS);
     }
 
     public static void schedulerIperf(String tool, String role, String server_address,
@@ -135,6 +193,10 @@ public class NetTaskAgent implements Runnable{
         scheduler.scheduleAtFixedRate(() -> {
 
             double result = MetricCollector.runIperf(tool,role,server_address,duration,transport_type,type);
+            if(type==3 && result != -1)
+                lastJitter = result;
+            else if(type==4 && result != -1)
+                lastPacketLoss = result;
             LocalDateTime now = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String res = Double.toString(result) + ';' + now.format(formatter);

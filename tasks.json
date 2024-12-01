@@ -43,9 +43,9 @@
               "frequency": 20
             },
             "alertflow_conditions": {
-              "cpu_usage": 80.0,
-              "ram_usage": 90.0,
-              "interface_stats": 2000
+              "cpu_usage": 1.0,
+              "ram_usage": 4.0,
+              "interface_stats": 5
             }
           }
         }
@@ -94,8 +94,8 @@
               "frequency": 0
             },
             "alertflow_conditions": {
-              "cpu_usage": 75.0,
-              "interface_stats": 1500
+              "cpu_usage": 2.0,
+              "interface_stats": 7
             }
           }
         }

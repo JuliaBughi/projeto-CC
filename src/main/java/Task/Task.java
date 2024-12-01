@@ -64,6 +64,14 @@ public class Task {
         return devices.get(0).getLatency();
     }
 
+    public String getAlertFlowConditionsString(){
+        return devices.get(0).getAlertFlowConditionsString();
+    }
+
+    public String getInterface_stats(){
+        return devices.get(0).getInterface_stats();
+    }
+
     @Override
     public String toString() {
         return "Task{" +
@@ -179,6 +187,10 @@ class Device {
         this.link_metrics = link_metrics;
     }
 
+    public String getInterface_stats(){
+        return device_metrics.getInterface_stats();
+    }
+
     public String getBandwidth(){
         return link_metrics.getBandwidthString();
     }
@@ -193,6 +205,10 @@ class Device {
 
     public String getLatency(){
         return link_metrics.getLatencyString();
+    }
+
+    public String getAlertFlowConditionsString(){
+        return link_metrics.getAlertFlowConditionsString();
     }
 
     @Override
@@ -245,13 +261,14 @@ class DeviceMetrics {
         this.ram_usage = ram_usage;
     }
 
-    public List<String> getInterface_stats() {
-        return interface_stats;
+    public String getInterface_stats() {
+        return String.join(",", interface_stats);
     }
 
     public void setInterface_stats(List<String> interface_stats) {
         this.interface_stats = interface_stats;
     }
+
 
     @Override
     public String toString() {
@@ -328,7 +345,6 @@ class LinkMetrics {
     public void setAlertflow_conditions(AlertFlowConditions alertflow_conditions) {
         this.alertflow_conditions = alertflow_conditions;
     }
-
     public String getBandwidthString(){
         return Bandwidth.BandwidthToString(bandwidth);
     }
@@ -343,6 +359,10 @@ class LinkMetrics {
 
     public String getLatencyString(){
         return Latency.LatencyToString(latency);
+    }
+
+    public String getAlertFlowConditionsString(){
+        return AlertFlowConditions.AlertFlowConditionsToString(alertflow_conditions);
     }
 
     @Override

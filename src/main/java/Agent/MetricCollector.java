@@ -39,7 +39,7 @@ public class MetricCollector {
             Process process = builder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
-            while ((line = reader.readLine()) != null) { // é preciso as 2 ultimas linhas porque a ultima pode ser a dizer que houve pacotes out of order
+            while ((line = reader.readLine()) != null) {
                 output.add(line);
             }
             process.waitFor();
@@ -232,7 +232,35 @@ public class MetricCollector {
 
     //interfaces - ifconfig + nome da interface (ver os pacotes enviados)
 
-    //packet loss e jitter usar os valores das tasks
+    public static int runIfconfig(String interfaceName){
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("ifconfig", interfaceName);
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            Pattern packetsSentPattern = Pattern.compile("TX\\s+packets\\s+(\\d+)");
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Matcher matcher = packetsSentPattern.matcher(line);
+                    if (matcher.find()) {
+                        // Wait for the process to complete
+                        process.waitFor();
+
+                        return Integer.parseInt(matcher.group(1));
+                    }
+                }
+
+            process.waitFor();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
 
 
 

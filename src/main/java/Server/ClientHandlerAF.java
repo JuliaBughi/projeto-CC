@@ -23,6 +23,10 @@ public class ClientHandlerAF implements Runnable {
             out.println("connected to server");
             out.flush();
 
+            String message;
+            while ((message = in.readLine()) != null) {
+                System.out.println("AF "+message);
+            }
 
             socket.close();
 
