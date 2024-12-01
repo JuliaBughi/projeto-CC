@@ -8,7 +8,7 @@ public class NMS_Agent {
         String device_id = args[1];
 
         NetTaskAgent netTaskAgent = new NetTaskAgent(server_ip,device_id);
-        AlertFlowAgent alertFlowAgent = new AlertFlowAgent();
+        AlertFlowAgent alertFlowAgent = new AlertFlowAgent(server_ip, device_id);
 
         new Thread(netTaskAgent).start();
         new Thread(alertFlowAgent).start();

@@ -5,8 +5,8 @@ import java.net.Socket;
 
 public class ClientHandlerAF implements Runnable {
     private Socket socket;
-    private DataInputStream in;
-    private DataOutputStream out;
+    private BufferedReader in;
+    private PrintWriter out;
 
     ClientHandlerAF(Socket socket){
         this.socket = socket;
@@ -14,11 +14,15 @@ public class ClientHandlerAF implements Runnable {
 
     public void run(){
         try{
-            in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-            // out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream());
 
-            //nao envia nada, so espera o recebimento das metricas, acho que o out nao é necessário (?)
-            //ou tambem é por aqui que ele depois manda fechar?
+            String line = in.readLine();
+            System.out.println("AF: client "+ line + " connected ");
+
+            out.println("connected to server");
+            out.flush();
+
 
             socket.close();
 

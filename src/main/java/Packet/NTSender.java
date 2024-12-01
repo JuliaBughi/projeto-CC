@@ -68,8 +68,6 @@ public class NTSender {
             DatagramPacket datagramPacket = new DatagramPacket(packetBytes, packetBytes.length, receiverAddress, receiverPort);
 
             socket.send(datagramPacket);
-            System.out.println("(Sender) ip: "+ receiverAddress);
-            System.out.println("(Sender) port: "+ receiverPort);
 
             try {
                 byte[] ackBuffer = new byte[1024];
