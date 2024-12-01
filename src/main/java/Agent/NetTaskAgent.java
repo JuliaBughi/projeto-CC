@@ -2,25 +2,45 @@ package Agent;
 
 import java.io.IOException;
 import java.net.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import Packet.*;
 import Task.*;
 
 public class NetTaskAgent implements Runnable{
     private static InetAddress server_ip;
+
+    private static InetAddress handler_ip;
+
     private static String device_id;
     //private static InetAddress server_ip = InetAddress.getLoopbackAddress(); //isso supostamente é equivalente ao localhost, mas verificar
-    private static int UDP_PORT = 9876;
+    private static int SERVER_PORT = 9876;
+    private static int handler_port;
     private static NTSender sender;
     private static NTReceiver receiver;
-    private static int nr_seq=1;
+
+    private static AtomicInteger nr_seq = new AtomicInteger(1); // não está a funcionar
+
+    public static int getNr_seq() {
+        return nr_seq.get();
+    }
+
+    public static void setNr_seq(int nr) {
+        nr_seq.set(nr);
+    }
+
+    public static void accNr_seq(int nr) {
+        nr_seq.set(nr+1);
+    }
 
     public NetTaskAgent(String server_ip, String device_id) throws UnknownHostException {
         this.server_ip = InetAddress.getByName(server_ip);
@@ -34,25 +54,28 @@ public class NetTaskAgent implements Runnable{
             sender = new NTSender(socket);
             receiver = new NTReceiver(socket);
 
-
-
-            nr_seq = sender.sendData("",server_ip,UDP_PORT,nr_seq,device_id,0);
-            System.out.println("Cliente: Enviou pacote de registo com seq = " + (nr_seq-1));
+            int aux = getNr_seq();
+            setNr_seq(sender.sendData("",server_ip,SERVER_PORT,aux,device_id,0));
             System.out.println("Establishing connection to server...");
             // aqui foi enviado o registo
 
-            NetTaskPacket answer = receiver.receive(nr_seq);
-            System.out.println("Cliente: Pacote recebido com sequência " + answer.getNr_seq());
-            nr_seq = answer.getNr_seq()+1;
-            System.out.println("Cliente: Conexão confirmada com o servidor. Sequência atualizada para " + nr_seq);
-            //System.out.println("Confirmation of connection");
+            aux = getNr_seq();
+            NetTaskPacket answer = receiver.receive(aux);
+            handler_port = receiver.getSenderPort();
+            handler_ip = receiver.getSenderAddress();
+            accNr_seq(answer.getNr_seq());
+            System.out.println("Confirmation of connection");
 
 
             if(answer.getType()==1){ // se há tasks para o cliente fazer
                 System.out.println("Tasks received, starting execution...");
-                this.ScheduleNTMetricCollect(answer, socket);
-                this.ScheduleAFMetricCollect(answer,socket);
+                this.ScheduleNTMetricCollect(answer);
+                this.ScheduleAFMetricCollect(answer);
                 // também tem que se fazer aqui a coleta das alertflow conditions
+
+                while (true) {
+                    Thread.sleep(1000); // para o obrigar a ficar aqui e não avançar
+                }
             }
 
             // se type == -1 terminar ligação porque não há tasks para ele
@@ -60,59 +83,54 @@ public class NetTaskAgent implements Runnable{
         } catch (Exception e){
             e.printStackTrace();
         } finally{
-            /*
             if(socket != null && !socket.isClosed()){
                 System.out.println("No tasks received, closing connection...");
                 socket.close();
             }
-            */
         }
     }
 
-    public void ScheduleNTMetricCollect(NetTaskPacket packet, DatagramSocket socket){
+    public void ScheduleNTMetricCollect(NetTaskPacket packet){
         String tasks = packet.getData();
         List<Task> l = Task.StringToTasks(tasks);
-        System.out.println("Dentro do schedule metric collector");
 
         for(Task t : l) {
             if (!t.getBandwidth().startsWith("*")) { // quer dizer que tem de fazer a bandwidth
                 String[] parts = t.getBandwidth().split(",");
                 // aqui tem que se o iperf periodicamente
                 // a minha dúvida é como é que se faz em relação ao nr de sequencia
-                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 2, socket);
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 2);
             }
 
             if (!t.getJitter().startsWith("*")) { // fazer o iperf para sacar o jitter
                 String[] parts = t.getJitter().split(",");
-                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 3, socket);
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 3);
             }
 
             if (!t.getPacketLoss().startsWith("*")){ // fazer o iperf para sacar o jitter
                 String[] parts = t.getPacketLoss().split(",");
-                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 4, socket);
+                schedulerIperf(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]),parts[4], Integer.parseInt(parts[5]), 4);
             }
 
             if (!t.getLatency().startsWith("*")){ // fazer o ping para sacar a latency
                 String[] parts = t.getLatency().split(",");
-                schedulerPing(parts[0],parts[1],Integer.parseInt(parts[2]),Integer.parseInt(parts[3]), socket);
+                schedulerPing(parts[0],parts[1],Integer.parseInt(parts[2]),Integer.parseInt(parts[3]));
             }
 
         }
 
-        // para o iperf convém fazer x retrays até desistir e dar mandar fail
-        // ou então dar um certo tempo para ele ter a certeza que não dá
         // no json só pedir jitter e packet loss quando for -u, bandwidth pode-se pedir sempre
         // convém que a frequencia do server seja mais pequena do que a do cliente
         // fazer -i (frequencia servidor) no server e -t no cliente (duração do teste=frequencia cliente)
 
     }
 
-    public void ScheduleAFMetricCollect(NetTaskPacket packet, DatagramSocket socket){
+    public void ScheduleAFMetricCollect(NetTaskPacket packet){
 
     }
 
     public static void schedulerIperf(String tool, String role, String server_address,
-                                      int duration,String transport_type, int frequency, int type, DatagramSocket socket){
+                                      int duration,String transport_type, int frequency, int type){
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
 
@@ -121,7 +139,9 @@ public class NetTaskAgent implements Runnable{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String res = Double.toString(result) + ';' + now.format(formatter);
             try {
-                nr_seq = sender.sendData(res,server_ip,UDP_PORT,nr_seq,device_id,type);
+                int aux = getNr_seq();
+                setNr_seq(sender.sendData(res,handler_ip,handler_port,aux,device_id,type));
+                System.out.println(res + " type: " +type+ " nr_seq: "+ nr_seq);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -130,7 +150,7 @@ public class NetTaskAgent implements Runnable{
 
     }
 
-    public static void schedulerPing(String tool, String destination, int count, int frequency,DatagramSocket socket){
+    public static void schedulerPing(String tool, String destination, int count, int frequency){
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
             double result = MetricCollector.runPing(tool,destination,count);
@@ -138,7 +158,9 @@ public class NetTaskAgent implements Runnable{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String res = Double.toString(result) + ';' + now.format(formatter);
             try {
-                nr_seq = sender.sendData(res,server_ip,UDP_PORT,nr_seq,device_id,5);
+                int aux = getNr_seq();
+                setNr_seq(sender.sendData(res,handler_ip,handler_port,aux,device_id,5));
+                System.out.println(res + " type: 5 nr_seq: "+ nr_seq);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }}, 0, frequency, TimeUnit.SECONDS);

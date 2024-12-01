@@ -9,6 +9,7 @@ import Packet.*;
 import Task.Task;
 
 public class ClientHandlerNT implements Runnable {
+
         private final NetTaskPacket helloPacket;
         private final NetTaskServer server;
         private final InetAddress clientAddress;
@@ -28,51 +29,48 @@ public class ClientHandlerNT implements Runnable {
 
     @Override
     public void run() {
-        DatagramSocket responseSocket = null;
+        DatagramSocket socket = null;
         try {
-            responseSocket = new DatagramSocket();
-            sender = new NTSender(responseSocket);
-            receiver = new NTReceiver(responseSocket);
+            socket = new DatagramSocket();
+            sender = new NTSender(socket);
+            receiver = new NTReceiver(socket);
 
             device_id = helloPacket.getDevice_id();
 
-            //podemos assumir que é logo a primeira ligação
-            this.server.addDevice(clientAddress, helloPacket.getDevice_id()); //aqui não é preciso gerir concorrência?
+            this.server.addDevice(clientAddress, helloPacket.getDevice_id());
             System.out.println("Received hello packet from "+device_id);
             List<Task> tasksForDevice = Task.getTasksForDevice(device_id, server.getTaskList());
 
 
             if(tasksForDevice.isEmpty()){ // fechar a ligação se não há tasks para mandar
                 sender.sendData("",clientAddress,clientPort,nr_seq, device_id, -1);
-                System.out.println("Servidor: Enviou pacote vazio com sequência " + (nr_seq-1) + " para " + device_id);
                 System.out.println("No tasks to send to client "+ device_id);
                 System.out.println("Closing connection...");
             }
             else{
                 String tasks = Task.TasksToString(tasksForDevice,device_id);
                 nr_seq = sender.sendData(tasks,clientAddress,clientPort,nr_seq,device_id,1);
-                System.out.println("Servidor: Pacote de tarefas enviado com sequência " + (nr_seq-1) + " para " + device_id);
-                //System.out.println(nr_seq);
-                //System.out.println("Tasks sent to client "+ device_id);
+                System.out.println("Tasks sent to client "+ device_id);
+                System.out.println("Waiting for metrics from "+ device_id);
 
-                //ciclo para coleta das métricas
+
                 while(true){
-                    System.out.println("Servidor: Aguardando pacotes de métricas...");
+                    socket.setSoTimeout(20000);
                     NetTaskPacket packet = receiver.receive(nr_seq);
-                    System.out.println("Servidor: Pacote recebido com sequência " + packet.getNr_seq());
+                    String data = packet.getData();
+                    System.out.println("Metric from "+device_id + ": "+data + " type: "+packet.getType());
                     nr_seq = packet.getNr_seq() + 1;
-                    System.out.println("Servidor: Número de sequência atualizado para " + nr_seq);
-                    // perceber como se vão guardar as metricas
-
                 }
+
 
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (responseSocket != null && !responseSocket.isClosed()) {
-                responseSocket.close();
+        } finally{
+            if(socket != null && !socket.isClosed()){
+                System.out.println("No tasks received, closing connection...");
+                socket.close();
             }
         }
     }

@@ -3,6 +3,8 @@ package Agent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,35 +13,47 @@ public class MetricCollector {
     public static double runIperf(String tool, String role, String server_address, int duration, String transport_type,int type) {
         String result1 = "";
         String result2 = "";
+        List<String> output = new ArrayList<>();
         try {
-            ProcessBuilder builder;
-            if(role.equals("c")) // se for cliente
-                if(transport_type.equals("u"))
-                    builder = new ProcessBuilder(tool, "-"+role, server_address, "-t", String.valueOf(duration), "-"+transport_type);
-                else
-                    builder = new ProcessBuilder(tool, "-"+role, server_address, "-t", String.valueOf(duration));
-            else // se for server
-                if(transport_type.equals("u"))
-                    builder = new ProcessBuilder(tool, "-"+role, "-i", String.valueOf(duration), "-"+transport_type);
-                else
-                    builder = new ProcessBuilder(tool, "-"+role, "-i", String.valueOf(duration));
+            List<String> command = new ArrayList<>();
+            command.add(tool);
+
+            if (role.equals("c")) {
+                command.add("-" + role);
+                command.add(server_address);
+            }
+
+            else if (role.equals("s")) {
+                command.add("-" + role);
+            }
+
+            command.add("-t");
+            command.add(String.valueOf(duration));
+
+            if (transport_type.equals("u")) {
+                command.add("-" + transport_type);
+            }
+            ProcessBuilder builder = new ProcessBuilder(command);
 
             builder.redirectErrorStream(true);
             Process process = builder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) { // é preciso as 2 ultimas linhas porque a ultima pode ser a dizer que houve pacotes out of order
-                result1 = result2;
-                result2 = line;
+                output.add(line);
             }
             process.waitFor();
 
-            if(type==2) // bandwidth
-                return parseBandwidth(result1,result2);
-            else if(type==3) //jitter
-                return parseJitter(result1,result2);
-            else // packet loss == 4
-                return parsePacketLoss(result1,result2);
+            if(type==2){// bandwidth
+                return parseBandwidth(output.get(output.size()-2), output.getLast());
+            }
+
+            else if(type==3){//jitter
+                return parseJitter(output.get(output.size()-2), output.getLast());
+            }
+            else{// packet loss == 4
+                return parsePacketLoss(output.get(output.size()-2), output.getLast());
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -62,7 +76,9 @@ public class MetricCollector {
             process.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
+            return -1;
         }
+
         return parseLatency(result);
 
     }
@@ -78,8 +94,12 @@ public class MetricCollector {
 
         // Check both lines, prioritizing the last line
         String[] linesToCheck = {lastLine2, lastLine1};
+        double bandwidth= -1;
 
         for (String line : linesToCheck) {
+            if (line != null && line.trim().endsWith(":")) {
+                continue;
+            }
 
             // Try each pattern
             for (String patternStr : patterns) {
@@ -88,26 +108,25 @@ public class MetricCollector {
 
                 if (matcher.find()) {
                     try {
-                        return Double.parseDouble(matcher.group(1));
+                        bandwidth =  Double.parseDouble(matcher.group(1));
                     } catch (NumberFormatException e) {
-                        // If parsing fails, continue to next pattern
                         continue;
                     }
                 }
             }
         }
 
-        // Return -1 if no bandwidth found
-        return -1;
+        return bandwidth;
     }
 
     public static double parseJitter(String lastLine1, String lastLine2) {
         String pattern = ".*\\s(\\d+\\.\\d+)\\s*ms.*";
 
         String[] linesToCheck = {lastLine2, lastLine1};
+        double jitter= -1;
 
         for (String line : linesToCheck) {
-            if (line != null && line.trim().endsWith("r")) {
+            if (line != null && line.trim().endsWith(":")) {
                 continue;
             }
 
@@ -116,24 +135,25 @@ public class MetricCollector {
 
             if (matcher.find()) {
                 try {
-                    return Double.parseDouble(matcher.group(1));
+                    jitter = Double.parseDouble(matcher.group(1));
                 } catch (NumberFormatException e) {
                     continue;
                 }
             }
         }
 
-        return -1;
+        return jitter;
     }
 
     public static double parsePacketLoss(String lastLine1, String lastLine2) {
-        // Pattern matches format "X/Y (Z%)"
-        String pattern = ".*(\\d+)/(\\d+)\\s*\\((\\d+(\\.\\d+)?)%\\).*";
+
+        String pattern = ".*\\((\\d+(\\.\\d+)?)%\\).*";
 
         String[] linesToCheck = {lastLine2, lastLine1};
+        double packet_loss= -1;
 
         for (String line : linesToCheck) {
-            if (line != null && line.trim().endsWith("r")) {
+            if (line != null && line.trim().endsWith(":")) {
                 continue;
             }
 
@@ -143,14 +163,14 @@ public class MetricCollector {
             if (matcher.find()) {
                 try {
                     // Extract the percentage directly from the parentheses
-                    return Double.parseDouble(matcher.group(3)); // dá return da percentagem
+                    packet_loss =  Double.parseDouble(matcher.group(1)); // dá return da percentagem
                 } catch (NumberFormatException e) {
                     continue;
                 }
             }
         }
 
-        return -1;
+        return packet_loss;
     }
 
     //ex da ultima linha do output: rtt min/avg/max/mdev = 16.556/17.230/17.900/0.477 ms

@@ -15,32 +15,32 @@
             "bandwidth": {
               "tool": "iperf",
               "role": "c",
-              "server_address": "10.0.0.2",
+              "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
-              "frequency": 300
+              "frequency": 15
             },
             "jitter": {
               "tool": "iperf",
               "role": "c",
-              "server_address": "10.0.0.2",
+              "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
-              "frequency": 300
+              "frequency": 15
             },
             "packet_loss": {
               "tool": "iperf",
               "role": "c",
-              "server_address": "10.0.0.2",
+              "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
-              "frequency": 300
+              "frequency": 15
             },
             "latency": {
               "tool": "ping",
-              "destination": "10.0.0.2",
+              "destination": "10.0.1.2",
               "count": 5,
-              "frequency": 60
+              "frequency": 20
             },
             "alertflow_conditions": {
               "cpu_usage": 80.0,
@@ -69,23 +69,23 @@
               "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
-              "frequency": 300
+              "frequency": 15
             },
             "jitter": {
               "tool": "iperf",
-              "role": "c",
-              "server_address": "10.0.0.2",
+              "role": "s",
+              "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
-              "frequency": 300
+              "frequency": 15
             },
             "packet_loss": {
               "tool": "iperf",
-              "role": "c",
-              "server_address": "10.0.0.2",
+              "role": "s",
+              "server_address": "10.0.1.2",
               "duration": 10,
               "transport_type": "u",
-              "frequency": 300
+              "frequency": 15
             },
             "latency": {
               "tool": "*",
