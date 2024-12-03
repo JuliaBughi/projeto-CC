@@ -24,7 +24,6 @@ public class NetTaskAgent implements Runnable{
     private static InetAddress server_ip;
     private static InetAddress handler_ip;
     private static String device_id;
-    //private static InetAddress server_ip = InetAddress.getLoopbackAddress(); //isso supostamente é equivalente ao localhost, mas verificar
     private static int SERVER_PORT = 9876;
     private static int handler_port;
     private static NTSender sender;

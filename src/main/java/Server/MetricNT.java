@@ -35,9 +35,21 @@ public class MetricNT { // perceber no map do server qual deve ser a key (data,t
         return date;
     }
 
-    //perguntar sobre a coleta da ram, cpu,...
-    //perguntar sobre como guardar as metricas
-    //perguntar o que fazer quando uma metrica está fora de padrão e tem que se mandar um alertflow
-    //perguntar se se tem que guardar as metricas do alertflow
+    @Override
+    public String toString(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        switch (type){
+            case 2:
+                return new String("bandwidth - "+ value + " Mbps " + date.format(formatter));
+            case 3:
+                return new String("jitter - "+ value + " ms " + date.format(formatter));
+            case 4:
+                return new String("packet loss - "+ value + " % " + date.format(formatter));
+            case 5:
+                return new String("latency - "+ value + " ms " + date.format(formatter));
+        }
+
+        return "";
+    }
 
 }

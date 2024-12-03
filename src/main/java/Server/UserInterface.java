@@ -1,8 +1,206 @@
 package Server;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
 public class UserInterface implements Runnable{
 
+    Scanner sc = new Scanner(System.in);
+    Menu menu;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
     public void run(){
-        //perceber como é que esta classe vai ter ligação com os dados do NetTaskServer
+        try {
+            main_menu();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    public void main_menu() throws IOException {
+        this.menu = new Menu(new String[]{
+                "\nMENU\n",
+                "All metrics",
+                "Metrics from a agent",
+                "Metrics from a period of time",
+                "Exit"
+        });
+        menu.setHandler(1, () -> menu_OrderOptions(1));
+        menu.setHandler(2, this::MetricsAgent);
+        menu.setHandler(3, () -> menu_OrderOptions(2));
+        menu.setHandler(4, () -> System.exit(0)); // ver se é isto que se deve fazer
+
+        menu.execute();
+    }
+
+    public void menu_OrderOptions(int i){
+        this.menu = new Menu(new String[]{
+                "\nORDER OPTIONS\n",
+                "Order by agent",
+                "Order by date"
+        });
+        if(i==1){
+            menu.setHandler(1, this:: allByAgent);
+            menu.setHandler(2, this:: allByDate);
+        }
+        else{
+            menu.setHandler(1, () -> menu_getDates(1, ""));
+            menu.setHandler(2, () -> menu_getDates(2, ""));
+        }
+
+    }
+
+    public void MetricsAgent(){
+        System.out.println("\nAgent id: ");
+        String id = sc.nextLine();
+
+        menu_MetricsAgent(id);
+    }
+
+    public void menu_MetricsAgent(String id){
+        this.menu = new Menu(new String[]{
+                "\nAGENT METRICS OPTIONS\n",
+                "All metrics",
+                "Metrics from a period of time"
+        });
+        menu.setHandler(1, () -> AgentAllMetrics(id));
+        menu.setHandler(2, () -> menu_getDates(3, id));
+    }
+
+    public LocalDateTime getDate(){
+        String d1;
+        LocalDateTime date1;
+
+        while(true){
+            System.out.println("Enter date (format: dd/MM/yyyy HH:mm:ss): ");
+            d1 = sc.nextLine();
+
+            try {
+                date1 = LocalDateTime.parse(d1,FORMATTER);
+                break;
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date format. Please enter date in format yyyy-MM-dd.");
+            }
+        }
+
+        return date1;
+    }
+
+    public void menu_getDates(int i, String id){
+        LocalDateTime date1;
+        LocalDateTime date2;
+
+        while(true){
+            System.out.println("\nInitial date (format: dd/MM/yyyy HH:mm:ss): ");
+            String d1 = sc.nextLine();
+
+            try{
+                date1 = LocalDateTime.parse(d1,FORMATTER);
+                if(LocalDateTime.now().isBefore(date1))
+                    System.out.println("Invalid date. Date is after actual date.");
+                else
+                    break;
+            } catch(DateTimeParseException e){
+                System.out.println("Invalid date format. Please enter date in format dd/MM/yyyy HH:mm:ss.");
+            }
+
+        }
+
+        while(true){
+            System.out.println("\nEnd date (format: dd/MM/yyyy HH:mm:ss) or write now (date now): ");
+            String d2 = sc.nextLine();
+
+            try{
+                if(d2.equals("now")){
+                    date2 = LocalDateTime.now();
+                    break;
+                }
+                else{
+                    date2 = LocalDateTime.parse(d2,FORMATTER);
+                    if(LocalDateTime.now().isBefore(date2))
+                        System.out.println("Invalid date. Date is after actual date.");
+                    else
+                        break;
+                }
+
+            } catch(DateTimeParseException e){
+                System.out.println("Invalid date format. Please enter date in format dd/MM/yyyy HH:mm:ss.");
+            }
+
+        }
+
+        if(date2.isBefore(date1)){
+            System.out.println("End date is before start date. Enter a new end date.");
+            date2 = getDate();
+        }
+
+        if(i==1)
+            PeriodByAgent(date1,date2);
+        else if(i==2)
+            PeriodByDate(date1,date2);
+        else
+            AgentPeriod(id,date1,date2);
+    }
+
+    public void allByAgent() throws IOException {
+        NMS_Server.printAllMetrics();
+
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void allByDate() throws IOException {
+        NMS_Server.printAllMetrics();
+
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void AgentAllMetrics(String id) throws IOException {
+
+        List<MetricNT> l = NMS_Server.getMetricsForDevice(id);
+
+        if(!l.isEmpty()){
+            System.out.println("Metrics Agent "+ id);
+            for(MetricNT m : l)
+                m.toString();
+        }
+        else{
+            System.out.println("Agent id doesn´t exist or agent has not sent metrics yet");
+        }
+
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void AgentPeriod(String id, LocalDateTime d1, LocalDateTime d2){
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void PeriodByAgent(LocalDateTime d1, LocalDateTime d2){
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void PeriodByDate(LocalDateTime d1, LocalDateTime d2){
+        pressAnyKey();
+        main_menu();
+    }
+
+
+
+    public void pressAnyKey(){
+        System.out.println("Press any key to continue");
+        String x = sc.nextLine();
+    }
+
+
 }
