@@ -4,10 +4,16 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class NMS_Server {
 
     private static ConcurrentHashMap<String, List<MetricNT>> mapMetrics = new ConcurrentHashMap<>();
+
+    private static List<String> ConnectionList = Collections.synchronizedList(new ArrayList<>());
+
+    private static List<String> AFList = Collections.synchronizedList(new ArrayList<>());
+
 
     public static void addMetric(String deviceId, MetricNT newMetric) {
         mapMetrics.compute(deviceId, (key, existingList) -> {
@@ -35,6 +41,55 @@ public class NMS_Server {
                 System.out.println(metric.toString());
             }
         }
+    }
+
+    public static void printPeriodByAgent(LocalDateTime d1, LocalDateTime d2){
+        for (Map.Entry<String, List<MetricNT>> entry : mapMetrics.entrySet()) {
+            String key = entry.getKey();
+            List<MetricNT> metrics = entry.getValue();
+
+            System.out.println(key +" metrics");
+            for (MetricNT m : metrics) {
+                if(!m.getDate().isBefore(d1) && !m.getDate().isAfter(d2))
+                    System.out.println(m.toString());
+                else if(m.getDate().isAfter(d2))
+                    break;
+            }
+        }
+    }
+
+    public static void printPeriodByDate(LocalDateTime d1, LocalDateTime d2){
+        List<MetricNT> l = mapMetrics.values().stream()
+                .flatMap(List::stream)
+                .filter(metric ->
+                        !metric.getDate().isBefore(d1) &&
+                                !metric.getDate().isAfter(d2)
+                )
+                .sorted(Comparator.comparing(MetricNT::getDate))
+                .toList();
+
+        for(MetricNT m : l)
+            System.out.println(m.toStringWId());
+    }
+
+    public static void ConnectionAdd(String s){
+        ConnectionList.add(s);
+    }
+
+    public static void AFAdd(String s){
+        AFList.add(s);
+    }
+
+    public static void ConnectionPrint(){
+        System.out.println("CONNECTION INFO");
+        for(String s : ConnectionList)
+            System.out.println(s);
+    }
+
+    public static void AFPrint(){
+        System.out.println("ALERTFLOW MESSAGES");
+        for(String s : AFList)
+            System.out.println(s);
     }
 
     public static void main(String[] args) throws IOException {

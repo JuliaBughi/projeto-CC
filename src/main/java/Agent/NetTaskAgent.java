@@ -155,28 +155,28 @@ public class NetTaskAgent implements Runnable{
             try{
                 double cpu = MetricCollector.runCpuUsage();
                 if(cpu > cpuU){
-                    AFQueue.put("client "+ device_id + " exceeded cpu usage: actual-> "+cpu+"%  limit-> "+cpuU+"%");
+                    AFQueue.put("Client "+ device_id + " exceeded cpu usage: actual-> "+cpu+"%  limit-> "+cpuU+"%");
                 }
                 double ram = MetricCollector.runRamUsage();
                 if(ram > ramU){
-                    AFQueue.put("client "+ device_id + " exceeded ram usage: actual-> "+ram+"%  limit-> "+ramU+"%");
+                    AFQueue.put("Client "+ device_id + " exceeded ram usage: actual-> "+ram+"%  limit-> "+ramU+"%");
                 }
                 for(String i : interfaces){
                     int count = MetricCollector.runIfconfig(i);
                     String key = task_id + i;
                     int istat = (count - interface_map.get(key)) / frequency;
                     if(istat > isU){ // subtrair o count antigo ao count atual e dividir pela frequencia para ter pacotes por segundo
-                        AFQueue.put("client "+ device_id + " exceeded interface stats on interface " + i + ": actual-> "+
+                        AFQueue.put("Client "+ device_id + " exceeded interface stats on interface " + i + ": actual-> "+
                                 istat +" pps  limit-> "+ramU+" pps");
                     }
                     interface_map.put(key,count); // atualizar o count para o atual
                 }
                 if(lastJitter > jitterU){
-                    AFQueue.put("client "+ device_id + " exceeded jitter: actual-> "+
+                    AFQueue.put("Client "+ device_id + " exceeded jitter: actual-> "+
                             lastJitter+"ms  limit-> "+jitterU+"ms");
                 }
                 if(lastPacketLoss > packetU){
-                    AFQueue.put("client "+ device_id + " exceeded packet loss: actual-> "+
+                    AFQueue.put("Client "+ device_id + " exceeded packet loss: actual-> "+
                             lastPacketLoss+"%  limit-> "+packetU+"%");
                 }
             } catch (InterruptedException e) {
@@ -197,7 +197,7 @@ public class NetTaskAgent implements Runnable{
             else if(type==4 && result != -1)
                 lastPacketLoss = result;
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String res = Double.toString(result) + ';' + now.format(formatter);
             try {
                 int aux = getNr_seq();
@@ -216,7 +216,7 @@ public class NetTaskAgent implements Runnable{
         scheduler.scheduleAtFixedRate(() -> {
             double result = MetricCollector.runPing(tool,destination,count);
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String res = Double.toString(result) + ';' + now.format(formatter);
             try {
                 int aux = getNr_seq();

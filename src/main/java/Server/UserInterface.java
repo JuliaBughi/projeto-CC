@@ -1,12 +1,10 @@
 package Server;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 public class UserInterface implements Runnable{
@@ -14,7 +12,7 @@ public class UserInterface implements Runnable{
     Scanner sc = new Scanner(System.in);
     Menu menu;
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void run(){
         try {
@@ -27,20 +25,36 @@ public class UserInterface implements Runnable{
     public void main_menu() throws IOException {
         this.menu = new Menu(new String[]{
                 "\nMENU\n",
+                "Connection info",
+                "Alertflow messages",
                 "All metrics",
                 "Metrics from a agent",
-                "Metrics from a period of time",
-                "Exit"
+                "Metrics from a period of time"
         });
-        menu.setHandler(1, () -> menu_OrderOptions(1));
-        menu.setHandler(2, this::MetricsAgent);
-        menu.setHandler(3, () -> menu_OrderOptions(2));
-        menu.setHandler(4, () -> System.exit(0)); // ver se é isto que se deve fazer
+        menu.setHandler(1, this::ConnectionInfo);
+        menu.setHandler(2, this::AlertFlowMessages);
+        menu.setHandler(3, () -> menu_OrderOptions(1));
+        menu.setHandler(4, this::MetricsAgent);
+        menu.setHandler(5, () -> menu_OrderOptions(2));
 
         menu.execute();
     }
 
-    public void menu_OrderOptions(int i){
+    public void ConnectionInfo() throws IOException {
+        NMS_Server.ConnectionPrint();
+
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void AlertFlowMessages() throws IOException {
+        NMS_Server.AFPrint();
+
+        pressAnyKey();
+        main_menu();
+    }
+
+    public void menu_OrderOptions(int i) throws IOException {
         this.menu = new Menu(new String[]{
                 "\nORDER OPTIONS\n",
                 "Order by agent",
@@ -55,16 +69,17 @@ public class UserInterface implements Runnable{
             menu.setHandler(2, () -> menu_getDates(2, ""));
         }
 
+        menu.execute();
     }
 
-    public void MetricsAgent(){
+    public void MetricsAgent() throws IOException {
         System.out.println("\nAgent id: ");
         String id = sc.nextLine();
 
         menu_MetricsAgent(id);
     }
 
-    public void menu_MetricsAgent(String id){
+    public void menu_MetricsAgent(String id) throws IOException {
         this.menu = new Menu(new String[]{
                 "\nAGENT METRICS OPTIONS\n",
                 "All metrics",
@@ -72,6 +87,8 @@ public class UserInterface implements Runnable{
         });
         menu.setHandler(1, () -> AgentAllMetrics(id));
         menu.setHandler(2, () -> menu_getDates(3, id));
+
+        menu.execute();
     }
 
     public LocalDateTime getDate(){
@@ -79,7 +96,7 @@ public class UserInterface implements Runnable{
         LocalDateTime date1;
 
         while(true){
-            System.out.println("Enter date (format: dd/MM/yyyy HH:mm:ss): ");
+            System.out.println("Enter date (format: yyyy-MM-dd HH:mm:ss): ");
             d1 = sc.nextLine();
 
             try {
@@ -93,12 +110,12 @@ public class UserInterface implements Runnable{
         return date1;
     }
 
-    public void menu_getDates(int i, String id){
+    public void menu_getDates(int i, String id) throws IOException {
         LocalDateTime date1;
         LocalDateTime date2;
 
         while(true){
-            System.out.println("\nInitial date (format: dd/MM/yyyy HH:mm:ss): ");
+            System.out.println("\nInitial date (format: yyyy-MM-dd HH:mm:ss): ");
             String d1 = sc.nextLine();
 
             try{
@@ -108,13 +125,13 @@ public class UserInterface implements Runnable{
                 else
                     break;
             } catch(DateTimeParseException e){
-                System.out.println("Invalid date format. Please enter date in format dd/MM/yyyy HH:mm:ss.");
+                System.out.println("Invalid date format. Please enter date in format yyyy-MM-dd HH:mm:ss.");
             }
 
         }
 
         while(true){
-            System.out.println("\nEnd date (format: dd/MM/yyyy HH:mm:ss) or write now (date now): ");
+            System.out.println("\nEnd date (format: yyyy-MM-dd HH:mm:ss) or write now (date now): ");
             String d2 = sc.nextLine();
 
             try{
@@ -131,7 +148,7 @@ public class UserInterface implements Runnable{
                 }
 
             } catch(DateTimeParseException e){
-                System.out.println("Invalid date format. Please enter date in format dd/MM/yyyy HH:mm:ss.");
+                System.out.println("Invalid date format. Please enter date in format yyyy-MM-dd HH:mm:ss.");
             }
 
         }
@@ -180,17 +197,31 @@ public class UserInterface implements Runnable{
         main_menu();
     }
 
-    public void AgentPeriod(String id, LocalDateTime d1, LocalDateTime d2){
+    public void AgentPeriod(String id, LocalDateTime d1, LocalDateTime d2) throws IOException {
+
+        List<MetricNT> l = NMS_Server.getMetricsForDevice(id);
+
+        for(MetricNT m : l){
+            if((m.getDate().isAfter(d1) ||m.getDate().isEqual(d1)) && (m.getDate().isBefore(d2) ||m.getDate().isEqual(d2)))
+                System.out.println(m.toString());
+             else if(m.getDate().isAfter(d2))
+                break;
+        }
+
         pressAnyKey();
         main_menu();
     }
 
-    public void PeriodByAgent(LocalDateTime d1, LocalDateTime d2){
+    public void PeriodByAgent(LocalDateTime d1, LocalDateTime d2) throws IOException {
+        NMS_Server.printPeriodByAgent(d1,d2);
+
         pressAnyKey();
         main_menu();
     }
 
-    public void PeriodByDate(LocalDateTime d1, LocalDateTime d2){
+    public void PeriodByDate(LocalDateTime d1, LocalDateTime d2) throws IOException {
+        NMS_Server.printPeriodByDate(d1,d2);
+
         pressAnyKey();
         main_menu();
     }

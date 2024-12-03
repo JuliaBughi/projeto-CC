@@ -2,11 +2,15 @@ package Server;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ClientHandlerAF implements Runnable {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     ClientHandlerAF(Socket socket){
         this.socket = socket;
@@ -18,14 +22,18 @@ public class ClientHandlerAF implements Runnable {
             out = new PrintWriter(socket.getOutputStream());
 
             String line = in.readLine();
-            System.out.println("AF: client "+ line + " connected ");
+            LocalDateTime date = LocalDateTime.now();
+            String s = new String(date.format(FORMATTER) +" -  Client "+ line + " connected ");
+            NMS_Server.AFAdd(s);
 
             out.println("connected to server");
             out.flush();
 
             String message;
             while ((message = in.readLine()) != null) {
-                System.out.println("AF "+message);
+                date = LocalDateTime.now();
+                s = new String(date.format(FORMATTER) +" - " +message);
+                NMS_Server.AFAdd(s);
             }
 
             socket.close();

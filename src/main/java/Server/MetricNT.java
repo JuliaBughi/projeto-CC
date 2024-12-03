@@ -2,13 +2,13 @@ package Server;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class MetricNT { // perceber no map do server qual deve ser a key (data,tipo,device_id)??
+public class MetricNT {
 
     private String device_id;
     private int type; //2-bandwidth 3-jitter 4-packetloss 5-latency (para bater certo com os tipos do nettask packet)
     private double value;
     private LocalDateTime date;
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public MetricNT(String device_id,int type,String data){
         this.device_id = device_id;
@@ -37,16 +37,30 @@ public class MetricNT { // perceber no map do server qual deve ser a key (data,t
 
     @Override
     public String toString(){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         switch (type){
             case 2:
-                return new String("bandwidth - "+ value + " Mbps " + date.format(formatter));
+                return new String(date.format(FORMATTER) +" - bandwidth - "+ value + " Mbps ");
             case 3:
-                return new String("jitter - "+ value + " ms " + date.format(formatter));
+                return new String(date.format(FORMATTER) +" - jitter - "+ value + " ms ");
             case 4:
-                return new String("packet loss - "+ value + " % " + date.format(formatter));
+                return new String(date.format(FORMATTER) + " - packet loss - "+ value + " % ");
             case 5:
-                return new String("latency - "+ value + " ms " + date.format(formatter));
+                return new String(date.format(FORMATTER) +" - latency - "+ value + " ms ");
+        }
+
+        return "";
+    }
+
+    public String toStringWId(){
+        switch (type){
+            case 2:
+                return new String(date.format(FORMATTER) +" - Client " + device_id+ ": bandwidth - "+ value + " Mbps ");
+            case 3:
+                return new String(date.format(FORMATTER) +" - Client " + device_id+ ": jitter - "+ value + " ms ");
+            case 4:
+                return new String(date.format(FORMATTER) +" - Client " + device_id+ ": packet loss - "+ value + " % ");
+            case 5:
+                return new String(date.format(FORMATTER) +" - Client " + device_id+ ": latency - "+ value + " ms ");
         }
 
         return "";
