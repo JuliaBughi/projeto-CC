@@ -2,6 +2,7 @@ package Agent;
 
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap;
@@ -33,6 +34,9 @@ public class NetTaskAgent implements Runnable{
     private static double lastPacketLoss = 0;
     private static Map<String, Integer> interface_map = new HashMap<>();
 
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+
     private static AtomicInteger nr_seq = new AtomicInteger(1); // não está a funcionar
 
     public static int getNr_seq() {
@@ -62,7 +66,8 @@ public class NetTaskAgent implements Runnable{
 
             int aux = getNr_seq();
             setNr_seq(sender.sendData("",server_ip,SERVER_PORT,aux,device_id,0));
-            System.out.println("Establishing connection to server...");
+            LocalDateTime date = LocalDateTime.now();
+            System.out.println(date.format(FORMATTER) + " NT: Establishing connection to server...");
             // aqui foi enviado o registo
 
             aux = getNr_seq();
@@ -70,11 +75,13 @@ public class NetTaskAgent implements Runnable{
             handler_port = receiver.getSenderPort();
             handler_ip = receiver.getSenderAddress();
             accNr_seq(answer.getNr_seq());
-            System.out.println("Confirmation of connection");
+            date = LocalDateTime.now();
+            System.out.println(date.format(FORMATTER) + " NT: Confirmation of connection");
 
 
             if(answer.getType()==1){ // se há tasks para o cliente fazer
-                System.out.println("Tasks received, starting execution...");
+                date = LocalDateTime.now();
+                System.out.println(date.format(FORMATTER) + " NT: Tasks received, starting execution...");
                 this.ScheduleNTMetricCollect(answer);
                 this.ScheduleAFMetricCollect(answer);
 
@@ -82,14 +89,16 @@ public class NetTaskAgent implements Runnable{
                     Thread.sleep(1000); // para o obrigar a ficar aqui e não avançar
                 }
             }
+            else{
+                date = LocalDateTime.now();
+                System.out.println(date.format(FORMATTER) + " NT: No tasks received, closing connection...");
+            }
 
-            // se type == -1 terminar ligação porque não há tasks para ele
 
         } catch (Exception e){
             e.printStackTrace();
         } finally{
             if(socket != null && !socket.isClosed()){
-                System.out.println("No tasks received, closing connection...");
                 socket.close();
             }
         }
@@ -155,28 +164,28 @@ public class NetTaskAgent implements Runnable{
             try{
                 double cpu = MetricCollector.runCpuUsage();
                 if(cpu > cpuU){
-                    AFQueue.put("Client "+ device_id + " exceeded cpu usage: actual-> "+cpu+"%  limit-> "+cpuU+"%");
+                    AFQueue.put("Agent "+ device_id + " exceeded cpu usage: actual-> "+cpu+"%  limit-> "+cpuU+"%");
                 }
                 double ram = MetricCollector.runRamUsage();
                 if(ram > ramU){
-                    AFQueue.put("Client "+ device_id + " exceeded ram usage: actual-> "+ram+"%  limit-> "+ramU+"%");
+                    AFQueue.put("Agent "+ device_id + " exceeded ram usage: actual-> "+ram+"%  limit-> "+ramU+"%");
                 }
                 for(String i : interfaces){
                     int count = MetricCollector.runIfconfig(i);
                     String key = task_id + i;
                     int istat = (count - interface_map.get(key)) / frequency;
                     if(istat > isU){ // subtrair o count antigo ao count atual e dividir pela frequencia para ter pacotes por segundo
-                        AFQueue.put("Client "+ device_id + " exceeded interface stats on interface " + i + ": actual-> "+
+                        AFQueue.put("Agent "+ device_id + " exceeded interface stats on interface " + i + ": actual-> "+
                                 istat +" pps  limit-> "+ramU+" pps");
                     }
                     interface_map.put(key,count); // atualizar o count para o atual
                 }
                 if(lastJitter > jitterU){
-                    AFQueue.put("Client "+ device_id + " exceeded jitter: actual-> "+
+                    AFQueue.put("Agent "+ device_id + " exceeded jitter: actual-> "+
                             lastJitter+"ms  limit-> "+jitterU+"ms");
                 }
                 if(lastPacketLoss > packetU){
-                    AFQueue.put("Client "+ device_id + " exceeded packet loss: actual-> "+
+                    AFQueue.put("Agent "+ device_id + " exceeded packet loss: actual-> "+
                             lastPacketLoss+"%  limit-> "+packetU+"%");
                 }
             } catch (InterruptedException e) {
@@ -197,12 +206,21 @@ public class NetTaskAgent implements Runnable{
             else if(type==4 && result != -1)
                 lastPacketLoss = result;
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            String res = Double.toString(result) + ';' + now.format(formatter);
+            String res = Double.toString(result) + ';' + now.format(FORMATTER);
             try {
                 int aux = getNr_seq();
                 setNr_seq(sender.sendData(res,handler_ip,handler_port,aux,device_id,type));
-                System.out.println(res + " type: " +type+ " nr_seq: "+ nr_seq);
+                switch(type){
+                    case 2:
+                        System.out.println(now.format(FORMATTER) + " NT: bandwidth - "+ result + " Mbps  nr_seq - "+ nr_seq);
+                        break;
+                    case 3:
+                        System.out.println(now.format(FORMATTER) + " NT: jitter - "+ result + " ms  nr_seq - "+ nr_seq);
+                        break;
+                    case 4:
+                        System.out.println(now.format(FORMATTER) + " NT: packet loss - "+ result + "%  nr_seq - "+ nr_seq);
+                        break;
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -216,12 +234,11 @@ public class NetTaskAgent implements Runnable{
         scheduler.scheduleAtFixedRate(() -> {
             double result = MetricCollector.runPing(tool,destination,count);
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            String res = Double.toString(result) + ';' + now.format(formatter);
+            String res = Double.toString(result) + ';' + now.format(FORMATTER);
             try {
                 int aux = getNr_seq();
                 setNr_seq(sender.sendData(res,handler_ip,handler_port,aux,device_id,5));
-                System.out.println(res + " type: 5 nr_seq: "+ nr_seq);
+                System.out.println(now.format(FORMATTER) + " NT: latency - "+ result + " ms  nr_seq - "+ nr_seq);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }}, 0, frequency, TimeUnit.SECONDS);

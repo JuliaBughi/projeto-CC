@@ -17,8 +17,7 @@ public class NetTaskPacket {
     // type 3 - jitter
     // type 4 - packetLoss
     // type 5 - latency
-    // type 6 - metricas (cpu,ram,...)
-    private String data; // ou se calhar pode ser ListTasks e manda logo todas as tasks juntas
+    private String data;
 
     public NetTaskPacket(){
     }
@@ -102,7 +101,7 @@ public class NetTaskPacket {
         packet.ack = Integer.parseInt(parts[2]);
         packet.isLast = Integer.parseInt(parts[3]);
         packet.type = Integer.parseInt(parts[4]);
-        if(packet.type==0 || packet.ack==1)
+        if(packet.type==-1 || packet.type==0 || packet.ack==1)
             packet.data="";
         else
             packet.data = parts[5];

@@ -1,8 +1,12 @@
 package Packet;
 
+import Server.NMS_Server;
+
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -14,6 +18,8 @@ public class NTSender {
     private int type;
     private static final int TIMEOUT = 2000; // milliseconds
     private static final int MAX_RETRIES = 5;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public NTSender(DatagramSocket socket) throws SocketException {
         this.socket = socket;
@@ -37,7 +43,16 @@ public class NTSender {
             String packetStr = NetTaskPacket.NetTaskPacketToString(packet);
 
             if (!sendWithRetry(packetStr, nr_seq)) {
-                throw new IOException("Failed to send empty packet after maximum retries");
+                LocalDateTime date =LocalDateTime.now();
+                String message;
+                if(type==-1 || type==1){ //mandados pelo server
+                    message = (date.format(FORMATTER) + " - Failed to send packet to agent" + deviceId + " after maximum retries");
+                    NMS_Server.ConnectionAdd(message);
+                }
+                else{ // mandados pelo agente
+                    System.out.print(date.format(FORMATTER) + " NT: Failed to send packet to server after maximum retries");
+                }
+
             }
 
             return nr_seq + 1;
@@ -52,7 +67,15 @@ public class NTSender {
             String packetStr = NetTaskPacket.NetTaskPacketToString(packet);
 
             if (!sendWithRetry(packetStr, nr_seq)) {
-                throw new IOException("Failed to send packet after maximum retries");
+                LocalDateTime date = LocalDateTime.now();
+                String message;
+                if(type==-1 || type==1){ //mandados pelo server
+                    message = (date.format(FORMATTER) + " - Failed to send packet to agent" + deviceId + " after maximum retries");
+                    NMS_Server.ConnectionAdd(message);
+                }
+                else{ // mandados pelo agente
+                    System.out.print(date.format(FORMATTER) + " NT: Failed to send packet to server after maximum retries");
+                }
             }
             nr_seq++;
         }
@@ -82,8 +105,6 @@ public class NTSender {
                     return true; // recebeu o ack
                 }
             } catch (SocketTimeoutException e) {
-                System.out.println("Timeout, retrying... (" + (retries + 1) + "/" +
-                        MAX_RETRIES + ")");
                 retries++;
             }
         }

@@ -14,6 +14,10 @@ public class NMS_Server {
 
     private static List<String> AFList = Collections.synchronizedList(new ArrayList<>());
 
+    public static boolean idExist(String id){
+        return mapMetrics.containsKey(id);
+    }
+
 
     public static void addMetric(String deviceId, MetricNT newMetric) {
         mapMetrics.compute(deviceId, (key, existingList) -> {
@@ -31,7 +35,7 @@ public class NMS_Server {
         return mapMetrics.getOrDefault(deviceId, Collections.emptyList());
     }
 
-    public static void printAllMetrics() {
+    public static void printAll() {
         for (Map.Entry<String, List<MetricNT>> entry : mapMetrics.entrySet()) {
             String key = entry.getKey();
             List<MetricNT> metrics = entry.getValue();
@@ -42,6 +46,33 @@ public class NMS_Server {
             }
         }
     }
+
+    public static void printAllByDate(){
+        List<MetricNT> l = mapMetrics.values().stream()
+                .flatMap(List::stream)
+                .sorted(Comparator.comparing(MetricNT::getDate))
+                .toList();
+
+        for(MetricNT m : l)
+            System.out.println(m.toStringWId());
+    }
+
+    public static void printAllByMetric(){
+        List<MetricNT> l = mapMetrics.values().stream()
+                .flatMap(List::stream)
+                .sorted((m1, m2) -> {
+                    int typeComparison = Integer.compare(m1.getType(), m2.getType());
+                    if (typeComparison == 0) {
+                        return m1.getDate().compareTo(m2.getDate());
+                    }
+                    return typeComparison;
+                })
+                .toList();
+
+        for(MetricNT m : l)
+            System.out.println(m.toStringWId());
+    }
+
 
     public static void printPeriodByAgent(LocalDateTime d1, LocalDateTime d2){
         for (Map.Entry<String, List<MetricNT>> entry : mapMetrics.entrySet()) {
@@ -66,6 +97,26 @@ public class NMS_Server {
                                 !metric.getDate().isAfter(d2)
                 )
                 .sorted(Comparator.comparing(MetricNT::getDate))
+                .toList();
+
+        for(MetricNT m : l)
+            System.out.println(m.toStringWId());
+    }
+
+    public static void printPeriodByMetric(LocalDateTime d1, LocalDateTime d2){
+        List<MetricNT> l = mapMetrics.values().stream()
+                .flatMap(List::stream)
+                .filter(metric ->
+                        !metric.getDate().isBefore(d1) &&
+                                !metric.getDate().isAfter(d2)
+                )
+                .sorted((m1, m2) -> {
+                    int typeComparison = Integer.compare(m1.getType(), m2.getType());
+                    if (typeComparison == 0) {
+                        return m1.getDate().compareTo(m2.getDate());
+                    }
+                    return typeComparison;
+                })
                 .toList();
 
         for(MetricNT m : l)
@@ -104,8 +155,5 @@ public class NMS_Server {
         new Thread(alertFlowServer).start();
         new Thread(userInterface).start();
 
-
-        // as metricas têm de ter uma data associada para depois e conseguir pedir as metricas dos ultimos x minutos/horas
-        // definir também o numero de pontos que se apresenta por unidade de tempo (ex: 20 por hora)
     }
 }

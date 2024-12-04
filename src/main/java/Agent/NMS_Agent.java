@@ -16,8 +16,19 @@ public class NMS_Agent {
         NetTaskAgent netTaskAgent = new NetTaskAgent(server_ip,device_id, taskQueue);
         AlertFlowAgent alertFlowAgent = new AlertFlowAgent(server_ip, device_id, taskQueue);
 
-        new Thread(netTaskAgent).start();
-        new Thread(alertFlowAgent).start();
+        Thread nt = new Thread(netTaskAgent);
+        nt.start();
+        Thread af = new Thread(alertFlowAgent);
+        af.start();
+
+
+        while(true){
+            if(!nt.isAlive()){
+                af.interrupt();
+                af.join();
+                break;
+            }
+        }
 
     }
 
