@@ -65,7 +65,7 @@ public class NetTaskAgent implements Runnable{
             receiver = new NTReceiver(socket);
 
             int aux = getNr_seq();
-            setNr_seq(sender.sendData("",server_ip,SERVER_PORT,aux,device_id,0));
+            setNr_seq(sender.sendData(device_id,server_ip,SERVER_PORT,aux,device_id,0));
             LocalDateTime date = LocalDateTime.now();
             System.out.println(date.format(FORMATTER) + " NT: Establishing connection to server...");
             // aqui foi enviado o registo

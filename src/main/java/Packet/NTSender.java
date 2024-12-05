@@ -32,13 +32,12 @@ public class NTSender {
         this.deviceId = deviceId;
         this.type=type;
 
-
         int offset = 0;
         int chunkSize = 1024;
         int last=0;
 
         if (data.isEmpty()) {
-            NetTaskPacket packet = new NetTaskPacket(nr_seq, deviceId, 0, 1, type, "");
+            NetTaskPacket packet = new NetTaskPacket(nr_seq, 0, 1, type, "");
 
             String packetStr = NetTaskPacket.NetTaskPacketToString(packet);
 
@@ -62,8 +61,7 @@ public class NTSender {
             String chunk = data.substring(i, Math.min(data.length(), i + chunkSize));
             boolean isLast = (i + chunkSize >= data.length());
             if(isLast) last=1;
-            //alterei para ele enviar o chunk em vez do data todo
-            NetTaskPacket packet = new NetTaskPacket(nr_seq,deviceId,0,last,type,chunk);
+            NetTaskPacket packet = new NetTaskPacket(nr_seq,0,last,type,chunk);
             String packetStr = NetTaskPacket.NetTaskPacketToString(packet);
 
             if (!sendWithRetry(packetStr, nr_seq)) {

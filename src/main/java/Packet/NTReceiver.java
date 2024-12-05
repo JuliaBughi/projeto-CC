@@ -38,16 +38,15 @@ public class NTReceiver {
             NetTaskPacket packet = NetTaskPacket.StringToNetTaskPacket(packetStr);
 
             if(aux==0){
-                output.setDevice_id(packet.getDevice_id());
                 output.setAck(packet.getAck());
                 output.setIsLast(1);
                 output.setType(packet.getType());
                 aux=1;
             }
 
-            if(packet.getAck()==0){ // só manda ack se o paco te recebido não for um ack
+            if(packet.getAck()==0){ // só manda ack se o pacote recebido não for um ack
                 // mandar ack
-                NetTaskPacket ack = new NetTaskPacket(packet.getNr_seq(),packet.getDevice_id(),packet.getType());
+                NetTaskPacket ack = new NetTaskPacket(packet.getNr_seq(),packet.getType());
                 String ackStr = NetTaskPacket.NetTaskPacketToString(ack);
                 byte[] ackBytes = ackStr.getBytes(StandardCharsets.UTF_8);
 
@@ -60,7 +59,6 @@ public class NTReceiver {
             if (packet.getNr_seq() == expectedSequenceNumber) {
                 receivedData.put(expectedSequenceNumber, packet.getData());
                 expectedSequenceNumber++;
-
                 if (packet.getIsLast()==1) {
                     receiving = false;
                 }

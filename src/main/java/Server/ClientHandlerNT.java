@@ -37,12 +37,10 @@ public class ClientHandlerNT implements Runnable {
             sender = new NTSender(socket);
             receiver = new NTReceiver(socket);
 
-            device_id = helloPacket.getDevice_id();
+            device_id = helloPacket.getData();
 
-            NetTaskServer.addDevice(clientAddress, helloPacket.getDevice_id());
             LocalDateTime date = LocalDateTime.now();
-            String s = new String(date.format(FORMATTER) + " - Received hello packet from " +
-                    "" +device_id);
+            String s = new String(date.format(FORMATTER) + " - Received hello packet from " +device_id);
             NMS_Server.ConnectionAdd(s);
             List<Task> tasksForDevice = Task.getTasksForDevice(device_id, NetTaskServer.getTaskList());
 
@@ -64,7 +62,7 @@ public class ClientHandlerNT implements Runnable {
                     try{
                         socket.setSoTimeout(100000); // 1 minuto
                         NetTaskPacket packet = receiver.receive(nr_seq);
-                        NMS_Server.addMetric(packet.getDevice_id(), new MetricNT(packet.getDevice_id(),packet.getType(),packet.getData()));
+                        NMS_Server.addMetric(device_id, new MetricNT(device_id,packet.getType(),packet.getData()));
                         nr_seq = packet.getNr_seq() + 1;
                     } catch (SocketTimeoutException e){
                         date = LocalDateTime.now();

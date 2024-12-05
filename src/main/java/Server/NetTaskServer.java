@@ -12,7 +12,6 @@ import Packet.NetTaskPacket;
 import Task.*;
 
 public class NetTaskServer implements Runnable {
-    private static ConcurrentHashMap<InetAddress,String> mapDevices = new ConcurrentHashMap<>();  // par ip->device_id
     private static List<Task> taskList =  new ArrayList<>(); //lista de tarefas carregadas do json
     private final int UDP_PORT = 9876;
 
@@ -21,10 +20,6 @@ public class NetTaskServer implements Runnable {
     public NetTaskServer(String filepath) throws IOException {
         taskList = Task.jsonReader(filepath);
         System.out.println("Json file loaded");
-    }
-
-    public static void addDevice(InetAddress ip, String device_id){
-        mapDevices.put(ip, device_id);
     }
 
     public static List<Task> getTaskList(){
@@ -40,7 +35,8 @@ public class NetTaskServer implements Runnable {
             while (true) {
                 NetTaskPacket helloMessage = receiver.receive(1);
                 LocalDateTime now = LocalDateTime.now();
-                String s = new String( now.format(FORMATTER) +" - Client " + helloMessage.getDevice_id() + " connected");
+                String s = new String( now.format(FORMATTER) +" - Client " + helloMessage.getData() + " connected");
+
                 NMS_Server.ConnectionAdd(s);
 
                 new Thread(new ClientHandlerNT(helloMessage,receiver.getSenderAddress(), receiver.getSenderPort())).start();

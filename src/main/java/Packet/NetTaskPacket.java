@@ -6,10 +6,11 @@ import java.util.List;
 
 public class NetTaskPacket {
     private int nr_seq;
-    private String device_id;
-    private int ack; // 1 se for um ack
-    private int isLast; // caso o pacote tenah de ser partido isto serve para saber se é o ultimo pedaço
-    private int type; //flag para saber se manda tasks, se manda metricas,...
+    private int ack;
+    private int isLast;
+    private int type;
+    private String data;
+
     // type -1 - terminar ligação
     // type 0 - olá do cliente ao server
     // type 1 - mandar tasks
@@ -17,23 +18,20 @@ public class NetTaskPacket {
     // type 3 - jitter
     // type 4 - packetLoss
     // type 5 - latency
-    private String data;
 
     public NetTaskPacket(){
     }
 
-    public NetTaskPacket(int nr_seq, String device_id, int ack,int isLast, int type, String data){
+    public NetTaskPacket(int nr_seq, int ack,int isLast, int type, String data){
         this.nr_seq = nr_seq;
-        this.device_id = device_id;
         this.ack = ack;
         this.isLast = isLast;
         this.type = type;
         this.data = data;
     }
 
-    public NetTaskPacket(int nr_seq, String device_id, int type){ //ack
+    public NetTaskPacket(int nr_seq, int type){ //ack
         this.nr_seq = nr_seq;
-        this.device_id = device_id;
         this.ack = 1;
         this.isLast = 1;
         this.type = type;
@@ -42,10 +40,6 @@ public class NetTaskPacket {
 
     public void setNr_seq(int nr_seq){
         this.nr_seq = nr_seq;
-    }
-
-    public void setDevice_id(String device_id){
-        this.device_id = device_id;
     }
 
     public void setAck(int ack){
@@ -68,10 +62,6 @@ public class NetTaskPacket {
         return this.nr_seq;
     }
 
-    public String getDevice_id(){
-        return this.device_id;
-    }
-
     public int getAck(){
         return this.ack;
     }
@@ -89,7 +79,7 @@ public class NetTaskPacket {
 
     public static String NetTaskPacketToString(NetTaskPacket packet){
 
-        return String.format("%d/%s/%d/%d/%d/%s",packet.nr_seq,packet.device_id,packet.ack,packet.isLast,packet.type,packet.data);
+        return String.format("%d/%d/%d/%d/%s",packet.nr_seq,packet.ack,packet.isLast,packet.type,packet.data);
     }
 
     public static NetTaskPacket StringToNetTaskPacket(String message){
@@ -97,14 +87,13 @@ public class NetTaskPacket {
         NetTaskPacket packet = new NetTaskPacket();
 
         packet.nr_seq = Integer.parseInt(parts[0]);
-        packet.device_id = parts[1];
-        packet.ack = Integer.parseInt(parts[2]);
-        packet.isLast = Integer.parseInt(parts[3]);
-        packet.type = Integer.parseInt(parts[4]);
-        if(packet.type==-1 || packet.type==0 || packet.ack==1)
+        packet.ack = Integer.parseInt(parts[1]);
+        packet.isLast = Integer.parseInt(parts[2]);
+        packet.type = Integer.parseInt(parts[3]);
+        if(packet.type==-1 || packet.ack==1)
             packet.data="";
         else
-            packet.data = parts[5];
+            packet.data = parts[4];
 
         return packet;
     }
