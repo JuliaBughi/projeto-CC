@@ -35,7 +35,7 @@ public class NetTaskServer implements Runnable {
             while (true) {
                 NetTaskPacket helloMessage = receiver.receive(1);
                 LocalDateTime now = LocalDateTime.now();
-                String s = new String( now.format(FORMATTER) +" - Client " + helloMessage.getData() + " connected");
+                String s = new String( now.format(FORMATTER) +" - Agent " + helloMessage.getData() + " connected");
 
                 NMS_Server.ConnectionAdd(s);
 

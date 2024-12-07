@@ -21,23 +21,30 @@ public class ClientHandlerAF implements Runnable {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream());
 
-            String line = in.readLine();
+            String agent_id = in.readLine();
             LocalDateTime date = LocalDateTime.now();
-            String s = new String(date.format(FORMATTER) +" -  Client "+ line + " connected ");
+            String s = new String(date.format(FORMATTER) +" -  Agent "+ agent_id + " connected ");
             NMS_Server.AFAdd(s);
 
-            out.println("connected to server");
+            out.println("Connected to server");
             out.flush();
 
             String message;
             while ((message = in.readLine()) != null) {
+                if(message.equals("exit")){
+                    date = LocalDateTime.now();
+                    s = new String(date.format(FORMATTER) +" -  Agent "+ agent_id + " disconnected ");
+                    NMS_Server.AFAdd(s);
+                    break;
+                }
                 date = LocalDateTime.now();
                 s = new String(date.format(FORMATTER) +" - " +message);
                 NMS_Server.AFAdd(s);
             }
 
             socket.close();
-
+            in.close();
+            out.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

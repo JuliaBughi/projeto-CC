@@ -24,8 +24,7 @@ public class NMS_Agent {
 
         while(true){
             if(!nt.isAlive()){
-                af.interrupt();
-                af.join();
+                taskQueue.put("exit");
                 break;
             }
         }
